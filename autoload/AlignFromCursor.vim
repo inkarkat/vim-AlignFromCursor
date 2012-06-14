@@ -12,12 +12,6 @@
 "	010	15-Jun-2012	Split off autoload script.
 "	001	22-Jul-2006	file creation
 
-" Avoid installing twice or when in unsupported Vim version.
-if exists('g:loaded_AlignFromCursor') || (v:version < 700)
-    finish
-endif
-let g:loaded_AlignFromCursor = 1
-
 function! s:IsNonWhitespaceAfterCursor()
     return search('\%#\s*\S', 'cn', line('.'))
 endfunction
@@ -139,14 +133,23 @@ function! AlignFromCursor#GetTextWidth( width )
     return l:width
 endfunction
 
-function! AlignFromCursor#RightToRelativeLine( offset )
+function! s:LineNumFromOffset( offset )
     let l:lineNum = line('.') + a:offset
     if l:lineNum < 1 || l:lineNum > line('$')
 	execute "normal! \<C-\>\<C-n>\<Esc>" | " Beep.
-	return
+	return -1
     endif
-
+    return l:lineNum
+endfunction
+function! AlignFromCursor#RightToRelativeLine( offset )
+    let l:lineNum = s:LineNumFromOffset(a:offset)
+    if l:lineNum == -1 | return | endif
     call AlignFromCursor#Right(s:GetWidthOfLine(l:lineNum))
+endfunction
+function! AlignFromCursor#LeftToRelativeLine( offset )
+    let l:lineNum = s:LineNumFromOffset(a:offset)
+    if l:lineNum == -1 | return | endif
+    call AlignFromCursor#Left(indent(l:lineNum) + 1)
 endfunction
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
