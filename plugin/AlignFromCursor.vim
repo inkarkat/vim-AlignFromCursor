@@ -1,9 +1,9 @@
 " AlignFromCursor.vim: Perform :left / :right only for the text part right of the cursor.
 "
 " DEPENDENCIES:
-"   - Requires Vim 7.0 or higher.
-"   - vimscript #2136 repeat.vim autoload script (optional).
-"   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2).
+"   - Requires Vim 7.0 or higher
+"   - AlignFromCursor.vim autoload script
+"   - vimscript #2136 repeat.vim autoload script (optional)
 "
 " Copyright: (C) 2006-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -11,6 +11,10 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	010	15-Jun-2012	Implement analog :LeftAlignFromCursor and
+"				<Leader>ln and <Leader>lp mappings, too.
+"				Rename script to AlignFromCursor.vim.
+"				Split off documentation and autoload script.
 "	009	12-Dec-2011	FIX: Handle 'readonly' and 'nomodifiable'
 "				buffers without function errors.
 "	008	30-Aug-2011	BUG: Add forgotten s:GetTextWidth() to \ri
@@ -60,155 +64,38 @@ if exists('g:loaded_AlignFromCursor') || (v:version < 700)
 endif
 let g:loaded_AlignFromCursor = 1
 
-function! s:IsNonWhitespaceAfterCursor()
-    return search('\%#\s*\S', 'cn', line('.'))
-endfunction
-function! s:DeleteWhitespaceAroundCursor()
-    " ... but only if there's still a non-whitespace after the cursor.
-    if search('\%#\s\+\S', 'cn', line('.'))
-	normal! diw
-    elseif search('\%#.\s\+\S', 'cn', line('.'))
-	normal! ldiw
-    elseif search('\s\%#\S', 'bn', line('.'))
-	normal! hdiw
-    else
-	return 0
-    endif
-    return 1
-endfunction
-if exists('*strdisplaywidth')
-    function! s:GetWidthOfLine( lineNum )
-	return strdisplaywidth(getline(a:lineNum))
-    endfunction
-    function! s:IsLineWidthSmallerThan( width )
-	return strdisplaywidth(getline('.')) < a:width
-    endfunction
-else
-    function! s:GetWidthOfLine( lineNum )
-	return EchoWithoutScrolling#DetermineVirtColNum(getline(a:lineNum))
-    endfunction
-    function! s:IsLineWidthSmallerThan( width )
-	return match(getline('.'), '\%>' . a:width . 'v$') == -1
-    endfunction
-endif
-function! s:IsLineWidthLargerThan( width )
-    return ! s:IsLineWidthSmallerThan(a:width + 1)
-endfunction
-function! s:RightAlignFromCursor( width )
-    if ! s:IsNonWhitespaceAfterCursor()
-	" Nothing to do; there's only whitespace after the cursor.
-	" The :right command also leaves whitespace-only lines alone.
-	return
-    endif
+"- commands --------------------------------------------------------------------
 
-    " Deleting all whitespace between the left text (which is kept) and the
-    " right text (which is right-aligned) serves two purposes:
-    " 1. It reduces the width of lines that are longer than the desired width,
-    "    so that either the width can then be increased again to reach the
-    "    desired width, or the line is still longer and we've done all we could.
-    "    (Analog to the :right command deleting all indent when trying to fit a
-    "    long line into the desired width.)
-    " 2. It avoids that <Tab> characters to the right of the cursor prevent
-    "	 that the right-alignment stops short of the desired width because of a
-    "	 jumping tabstop.
-    call s:DeleteWhitespaceAroundCursor()
+command! -bar -nargs=? RightAlignFromCursor call setline(1, getline(1)) | call AlignFromCursor#Right(AlignFromCursor#GetTextWidth(<q-args>))
+command! -bar -nargs=? LeftAlignFromCursor  call setline(1, getline(1)) | call  AlignFromCursor#Left(AlignFromCursor#GetTextWidth(<q-args>))
 
-    " Insert a single <Space> until the desired width is reached. The indent is
-    " corrected at the end, so that the proper <Tab> / <Space> characters are
-    " used.
-    let l:didInsert = 0
-    while s:IsLineWidthSmallerThan(a:width)
-	execute "normal! i \<Esc>"
-	let l:didInsert = 1
-    endwhile
 
-    if s:IsLineWidthLargerThan(a:width) && l:didInsert
-	" The last <Space> caused one following <Tab> to jump to the next
-	" tabstop, and this caused the line to exceed the desired width. We
-	" remove this last <Space>, so that the right-alignment command is
-	" almost fulfilled, rather than overdoing it. The :right command also
-	" behaves in this way.
-	normal! x
-    endif
+"- mappings --------------------------------------------------------------------
 
-    " Finally, change whitespace to spaces / tab / softtabstop based on buffer
-    " settings. Note: This doesn't just change the just inserted spaces, but the
-    " entire line!
-    if l:didInsert
-	.retab!
-    endif
-endfunction
-function! s:LeftAlignFromCursor( width )
-    " Deleting all whitespace between the left text (which is kept) and the
-    " right text (which is left-aligned) serves two purposes:
-    " 1. It reduces the width of lines that are longer than the desired width,
-    "    so that either the width can then be increased again to reach the
-    "    desired width, or the line is still longer and we've done all we could.
-    "    (Analog to the :right command deleting all indent when trying to fit a
-    "    long line into the desired width.)
-    " 2. It avoids that <Tab> characters to the right of the cursor prevent
-    "	 that the left-alignment stops short of the desired width because of a
-    "	 jumping tabstop.
-    call s:DeleteWhitespaceAroundCursor()
-
-    " Calculate the number of screen columns that need to be filled with <Space>
-    " characters. The indent is corrected at the end, so that the proper <Tab> /
-    " <Space> characters are used.
-    let l:difference = a:width - virtcol('.')
-
-    if l:difference <= 0
-	" The cursor position is already past the desired width. There's nothing
-	" more we can do.
-	return
-    endif
-
-    execute 'normal!' l:difference . "i \<Esc>g`["
-
-    " Finally, change whitespace to spaces / tab / softtabstop based on buffer
-    " settings. Note: This doesn't just change the just inserted spaces, but the
-    " entire line!
-    .retab!
-endfunction
-
-function! s:GetTextWidth( width )
-    let l:width = str2nr(a:width)
-    if l:width == 0
-	let l:width = &textwidth
-	if l:width == 0
-	    let l:width = 80
-	endif
-    endif
-    return l:width
-endfunction
-
-function! s:RightAlignToRelativeLine( offset )
-    let l:lineNum = line('.') + a:offset
-    if l:lineNum < 1 || l:lineNum > line('$')
-	execute "normal! \<C-\>\<C-n>\<Esc>" | " Beep.
-	return
-    endif
-
-    call s:RightAlignFromCursor(s:GetWidthOfLine(l:lineNum))
-endfunction
-
-command! -bar -nargs=? RightAlignFromCursor call setline(1, getline(1)) | call <SID>RightAlignFromCursor(<SID>GetTextWidth(<q-args>))
-command! -bar -nargs=? LeftAlignFromCursor  call setline(1, getline(1)) | call  <SID>LeftAlignFromCursor(<SID>GetTextWidth(<q-args>))
-nnoremap <silent> <Plug>RightAlignFromCursor :<C-u>call setline(1, getline(1))<Bar>call <SID>RightAlignFromCursor(<SID>GetTextWidth(v:count))<Bar>silent! call repeat#set("\<lt>Plug>RightAlignFromCursor")<CR>
+nnoremap <silent> <Plug>RightAlignFromCursor :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#Right(AlignFromCursor#GetTextWidth(v:count))<Bar>silent! call repeat#set("\<lt>Plug>RightAlignFromCursor")<CR>
 if ! hasmapto('<Plug>RightAlignFromCursor', 'n')
     nmap <silent> <Leader>ri <Plug>RightAlignFromCursor
 endif
-nnoremap <silent> <Plug>LeftAlignFromCursor :<C-u>call setline(1, getline(1))<Bar>call <SID>LeftAlignFromCursor(<SID>GetTextWidth(v:count))<Bar>silent! call repeat#set("\<lt>Plug>LeftAlignFromCursor")<CR>
+nnoremap <silent> <Plug>LeftAlignFromCursor :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#Left(AlignFromCursor#GetTextWidth(v:count))<Bar>silent! call repeat#set("\<lt>Plug>LeftAlignFromCursor")<CR>
 if ! hasmapto('<Plug>LeftAlignFromCursor', 'n')
     nmap <silent> <Leader>le <Plug>LeftAlignFromCursor
 endif
 
-nnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>call setline(1, getline(1))<Bar>call <SID>RightAlignToRelativeLine(-1)<Bar>silent! call repeat#set("\<lt>Plug>RightAlignToPreviousLine")<CR>
+nnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#RightToRelativeLine(-1)<Bar>silent! call repeat#set("\<lt>Plug>RightAlignToPreviousLine")<CR>
 if ! hasmapto('<Plug>RightAlignToPreviousLine', 'n')
     nmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
 endif
-nnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>call setline(1, getline(1))<Bar>call <SID>RightAlignToRelativeLine(1) <Bar>silent! call repeat#set("\<lt>Plug>RightAlignToNextLine")<CR>
+nnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#RightToRelativeLine(1) <Bar>silent! call repeat#set("\<lt>Plug>RightAlignToNextLine")<CR>
 if ! hasmapto('<Plug>RightAlignToNextLine', 'n')
     nmap <silent> <Leader>rn <Plug>RightAlignToNextLine
+endif
+nnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#LeftToRelativeLine(-1)<Bar>silent! call repeat#set("\<lt>Plug>LeftAlignToPreviousLine")<CR>
+if ! hasmapto('<Plug>LeftAlignToPreviousLine', 'n')
+    nmap <silent> <Leader>lp <Plug>LeftAlignToPreviousLine
+endif
+nnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#LeftToRelativeLine(1) <Bar>silent! call repeat#set("\<lt>Plug>LeftAlignToNextLine")<CR>
+if ! hasmapto('<Plug>LeftAlignToNextLine', 'n')
+    nmap <silent> <Leader>ln <Plug>LeftAlignToNextLine
 endif
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
