@@ -46,6 +46,7 @@ endif
 function! s:IsLineWidthLargerThan( width )
     return ! s:IsLineWidthSmallerThan(a:width + 1)
 endfunction
+
 function! AlignFromCursor#Right( width )
     if ! s:IsNonWhitespaceAfterCursor()
 	" Nothing to do; there's only whitespace after the cursor.
@@ -90,6 +91,7 @@ function! AlignFromCursor#Right( width )
 	.retab!
     endif
 endfunction
+
 function! AlignFromCursor#Left( width )
     " Deleting all whitespace between the left text (which is kept) and the
     " right text (which is left-aligned) serves two purposes:
@@ -121,6 +123,21 @@ function! AlignFromCursor#Left( width )
     " entire line!
     .retab!
 endfunction
+
+function! AlignFromCursor#DoRange( firstLine, lastLine, What, width )
+    if a:firstLine == a:lastLine
+	" Commonly, just the current line is processed.
+	return call(a:What, [a:width])
+    endif
+
+    let l:cursorScreenColumn = virtcol('.')
+    for l:line in range(a:firstLine, a:lastLine)
+	execute l:line
+	execute 'normal!' l:cursorScreenColumn . '|'
+	call call(a:What, [a:width])
+    endfor
+endfunction
+
 
 function! AlignFromCursor#GetTextWidth( width )
     let l:width = str2nr(a:width)
