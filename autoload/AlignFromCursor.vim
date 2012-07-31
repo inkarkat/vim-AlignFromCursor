@@ -47,6 +47,38 @@ endif
 function! s:IsLineWidthLargerThan( width )
     return ! s:IsLineWidthSmallerThan(a:width + 1)
 endfunction
+function! GetTextBeforeCursorScreenColumn()
+    let l:originalCursorPos = getpos('.')
+    if search('^\s\+\%#', 'bn', line('.'))
+	let l:textBeforeCursorScreenColumn = 0
+    else
+	let l:isWhitespaceBeforeCursor = search('\S\s\+\%#', 'b', line('.'))
+	let l:textBeforeCursorScreenColumn = virtcol('.')
+	if l:isWhitespaceBeforeCursor
+	    call setpos('.', l:originalCursorPos)
+	endif
+    endif
+
+    return l:textBeforeCursorScreenColumn
+endfunction
+function! RetabFromCursor()
+    let l:originalLine = getline('.')
+    let l:textBeforeCursorScreenColumn = GetTextBeforeCursorScreenColumn()
+    if l:textBeforeCursorScreenColumn == 0
+	" There was no text before the cursor, just maybe whitespace; we can
+	" just retab the entire line.
+	.retab!
+    else
+	.retab!
+	if getline('.') ==# l:originalLine
+	    return
+	endif
+
+	let l:originalLineBeforeCursor = matchstr(l:originalLine, '^.*\%>'.l:textBeforeCursorScreenColumn.'v')
+	let l:retabbedLineFromCursor   = matchstr(getline('.'), '\%'.l:textBeforeCursorScreenColumn.'v.*$')
+	call setline('.', l:originalLineBeforeCursor . l:retabbedLineFromCursor)
+    endif
+endfunction
 
 function! AlignFromCursor#Right( width )
     if ! s:IsNonWhitespaceAfterCursor()
@@ -86,10 +118,9 @@ function! AlignFromCursor#Right( width )
     endif
 
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
-    " settings. Note: This doesn't just change the just inserted spaces, but the
-    " entire line!
+    " settings.
     if l:didInsert
-	.retab!
+	call s:RetabFromCursor()
     endif
 endfunction
 
@@ -120,9 +151,8 @@ function! AlignFromCursor#Left( width )
     execute 'normal!' l:difference . "i \<Esc>g`["
 
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
-    " settings. Note: This doesn't just change the just inserted spaces, but the
-    " entire line!
-    .retab!
+    " settings.
+    call s:RetabFromCursor()
 endfunction
 
 function! AlignFromCursor#DoRange( firstLine, lastLine, What, width )
