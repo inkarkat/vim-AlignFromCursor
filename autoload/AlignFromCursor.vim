@@ -9,6 +9,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	011	25-Jun-2012	BUG: Do not clobber the default register.
 "	010	15-Jun-2012	Split off autoload script.
 "	001	22-Jul-2006	file creation
 
@@ -18,11 +19,11 @@ endfunction
 function! s:DeleteWhitespaceAroundCursor()
     " ... but only if there's still a non-whitespace after the cursor.
     if search('\%#\s\+\S', 'cn', line('.'))
-	normal! diw
+	normal! "_diw
     elseif search('\%#.\s\+\S', 'cn', line('.'))
-	normal! ldiw
+	normal! l"_diw
     elseif search('\s\%#\S', 'bn', line('.'))
-	normal! hdiw
+	normal! h"_diw
     else
 	return 0
     endif
@@ -81,7 +82,7 @@ function! AlignFromCursor#Right( width )
 	" remove this last <Space>, so that the right-alignment command is
 	" almost fulfilled, rather than overdoing it. The :right command also
 	" behaves in this way.
-	normal! x
+	normal! "_x
     endif
 
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
