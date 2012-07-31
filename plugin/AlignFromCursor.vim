@@ -15,6 +15,7 @@
 "				<Leader>ln and <Leader>lp mappings, too.
 "				Rename script to AlignFromCursor.vim.
 "				Split off documentation and autoload script.
+"				Support [range] for commands.
 "	009	12-Dec-2011	FIX: Handle 'readonly' and 'nomodifiable'
 "				buffers without function errors.
 "	008	30-Aug-2011	BUG: Add forgotten s:GetTextWidth() to \ri
@@ -66,8 +67,8 @@ let g:loaded_AlignFromCursor = 1
 
 "- commands --------------------------------------------------------------------
 
-command! -bar -nargs=? RightAlignFromCursor call setline(1, getline(1)) | call AlignFromCursor#Right(AlignFromCursor#GetTextWidth(<q-args>))
-command! -bar -nargs=? LeftAlignFromCursor  call setline(1, getline(1)) | call  AlignFromCursor#Left(AlignFromCursor#GetTextWidth(<q-args>))
+command! -bar -range -nargs=? RightAlignFromCursor call setline(1, getline(1)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Right'), AlignFromCursor#GetTextWidth(<q-args>))
+command! -bar -range -nargs=? LeftAlignFromCursor  call setline(1, getline(1)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Left' ), AlignFromCursor#GetTextWidth(<q-args>))
 
 
 "- mappings --------------------------------------------------------------------
