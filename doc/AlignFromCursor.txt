@@ -1,0 +1,93 @@
+*AlignFromCursor.txt*   Perform :left / :right only for the text part right of the cursor.
+
+		     ALIGN FROM CURSOR    by Ingo Karkat
+							 *AlignFromCursor.vim*
+description			|AlignFromCursor-description|
+usage				|AlignFromCursor-usage|
+installation			|AlignFromCursor-installation|
+limitations			|AlignFromCursor-limitations|
+known problems			|AlignFromCursor-known-problems|
+todo				|AlignFromCursor-todo|
+history				|AlignFromCursor-history|
+
+==============================================================================
+DESCRIPTION					 *AlignFromCursor-description*
+
+This plugin offers commands and mappings that align only the text to the right
+of the cursor, and keep the text to the left unmodified, unlike the built-in
+|:left| and |:right|, which always work on the entire line.
+This is useful e.g. for right-aligning the "-- Author" attribution in a
+fortune, the help tags definitions in this help file, or to left-align a
+comment to a particular column.
+The alignment width defaults to 'textwidth', can be passed as a [count] to the
+mappings, and there are mappings that take the actual width from adjacent
+previous / next lines.
+
+RELATED WORKS								     *
+
+==============================================================================
+USAGE						       *AlignFromCursor-usage*
+					   *<Leader>le* *:LeftAlignFromCursor*
+[width]<Leader>le
+:[range]LeftAlignFromCursor [width]
+			Left-align the text part right of the cursor to
+			[width] columns (default 'textwidth' or 80 when
+			'textwidth' is 0). Cp. |:left|.
+			Applies to all lines in [range], based on the current
+			cursor position.
+						     *<Leader>lp* *<Leader>ln*
+[count]<Leader>lp	Left-align the text part right of the cursor to the
+[count]<Leader>ln	indent of the [count]'th previous / next line.
+
+					  *<Leader>ri* *:RightAlignFromCursor*
+[width]<Leader>ri
+:[range]RightAlignFromCursor [width]
+			Right-align the text part right of the cursor to
+			[width] columns (default 'textwidth' or 80 when
+			'textwidth' is 0). Cp. |:right|.
+			Applies to all lines in [range], based on the current
+			cursor position.
+						     *<Leader>rp* *<Leader>rn*
+[count]<Leader>rp	Right-align the text part right of the cursor to the
+[count]<Leader>rn	width of the [count]'th previous / next line.
+
+==============================================================================
+INSTALLATION					*AlignFromCursor-installation*
+
+This script is packaged as a |vimball|. If you have the "gunzip" decompressor
+in your PATH, simply edit the *.vba.gz package in Vim; otherwise, decompress
+the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
+vimball or via the |:UseVimball| command. >
+    vim AlignFromCursor.vba.gz
+    :so %
+To uninstall, use the |:RmVimball| command.
+
+DEPENDENCIES					*AlignFromCursor-dependencies*
+
+- Requires Vim 7.0 or higher.
+
+==============================================================================
+LIMITATIONS					 *AlignFromCursor-limitations*
+
+KNOWN PROBLEMS				      *AlignFromCursor-known-problems*
+
+TODO							*AlignFromCursor-todo*
+
+IDEAS						       *AlignFromCursor-ideas*
+
+==============================================================================
+HISTORY						     *AlignFromCursor-history*
+
+GOAL
+First published version.
+
+0.01	22-Jul-2006
+Started development.
+
+==============================================================================
+Copyright: (C) 2006-2012 Ingo Karkat
+The VIM LICENSE applies to this script; see |copyright|.
+
+Maintainer:	Ingo Karkat <ingo@karkat.de>
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:
