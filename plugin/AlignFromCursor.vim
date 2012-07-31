@@ -11,7 +11,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"	010	15-Jun-2012	Implement analog :LeftAlignFromCursor and
+"   1.00.010	15-Jun-2012	Implement analog :LeftAlignFromCursor and
 "				<Leader>ln and <Leader>lp mappings, too.
 "				Rename script to AlignFromCursor.vim.
 "				Split off documentation and autoload script.
