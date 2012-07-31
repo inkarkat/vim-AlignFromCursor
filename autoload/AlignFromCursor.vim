@@ -9,7 +9,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"	011	25-Jun-2012	BUG: Do not clobber the default register.
+"   1.00.011	25-Jun-2012	BUG: Do not clobber the default register.
 "	010	15-Jun-2012	Split off autoload script.
 "	001	22-Jul-2006	file creation
 
