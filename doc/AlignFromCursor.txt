@@ -25,6 +25,13 @@ previous / next lines.
 
 RELATED WORKS								     *
 
+- The Align plugin (vimscript #294) offers a general-purpose :Align command
+  and many mappings for text alignment along various characters, but those are
+  more specialized for certain syntax fragments and do not consider the
+  current cursor position like this plugin.
+- The Tabular plugin (https://github.com/godlygeek/tabular) is similar to the
+  Align plugin.
+
 ==============================================================================
 USAGE						       *AlignFromCursor-usage*
 					   *<Leader>le* *:LeftAlignFromCursor*
@@ -38,6 +45,7 @@ USAGE						       *AlignFromCursor-usage*
 						     *<Leader>lp* *<Leader>ln*
 [count]<Leader>lp	Left-align the text part right of the cursor to the
 [count]<Leader>ln	indent of the [count]'th previous / next line.
+
 
 					  *<Leader>ri* *:RightAlignFromCursor*
 [width]<Leader>ri
@@ -65,6 +73,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					*AlignFromCursor-dependencies*
 
 - Requires Vim 7.0 or higher.
+- repeat.vim (vimscript #2136) plugin (optional)
 
 ==============================================================================
 LIMITATIONS					 *AlignFromCursor-limitations*
@@ -78,7 +87,7 @@ IDEAS						       *AlignFromCursor-ideas*
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
 
-GOAL
+1.00	01-Aug-2012
 First published version.
 
 0.01	22-Jul-2006
