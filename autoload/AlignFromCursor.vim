@@ -47,37 +47,62 @@ endif
 function! s:IsLineWidthLargerThan( width )
     return ! s:IsLineWidthSmallerThan(a:width + 1)
 endfunction
-function! GetTextBeforeCursorScreenColumn()
+function! GetWhitespaceAroundCursorScreenColumns()
     let l:originalCursorPos = getpos('.')
-    if search('^\s\+\%#', 'bn', line('.'))
+    if search('^\s*\%#', 'bcn', line('.'))
 	let l:textBeforeCursorScreenColumn = 0
+	normal! 0
     else
-	let l:isWhitespaceBeforeCursor = search('\S\s\+\%#', 'b', line('.'))
-	let l:textBeforeCursorScreenColumn = virtcol('.')
-	if l:isWhitespaceBeforeCursor
-	    call setpos('.', l:originalCursorPos)
+	if search('\S\s*\%#\s\|\S\s\+\%#\S', 'b', line('.'))
+	    let l:textBeforeCursorScreenColumn = virtcol('.')
+	    normal! l
+	else
+	    let l:textBeforeCursorScreenColumn = 0
 	endif
     endif
 
-    return l:textBeforeCursorScreenColumn
+    if search('\%#\s\+', 'ce', line('.'))
+	let l:lastWhitespaceAfterCursorScreenColumn = virtcol('.')
+    else
+	let l:lastWhitespaceAfterCursorScreenColumn = 0
+    endif
+    call setpos('.', l:originalCursorPos)
+
+    return [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn]
+endfunction
+function! s:RenderedTabWidth( virtcol )
+    return 999
 endfunction
 function! RetabFromCursor()
     let l:originalLine = getline('.')
-    let l:textBeforeCursorScreenColumn = GetTextBeforeCursorScreenColumn()
-    if l:textBeforeCursorScreenColumn == 0
-	" There was no text before the cursor, just maybe whitespace; we can
-	" just retab the entire line.
-	.retab!
-    else
-	.retab!
-	if getline('.') ==# l:originalLine
-	    return
-	endif
-
-	let l:originalLineBeforeCursor = matchstr(l:originalLine, '^.*\%>'.l:textBeforeCursorScreenColumn.'v')
-	let l:retabbedLineFromCursor   = matchstr(getline('.'), '\%'.l:textBeforeCursorScreenColumn.'v.*$')
-	call setline('.', l:originalLineBeforeCursor . l:retabbedLineFromCursor)
+    let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = GetWhitespaceAroundCursorScreenColumns()
+    if l:lastWhitespaceAfterCursorScreenColumn == 0
+	" There's no whitespace around the cursor, therefore, nothing to do.
+	return
     endif
+
+    let l:width = l:lastWhitespaceAfterCursorScreenColumn - l:textBeforeCursorScreenColumn
+    if &l:expandtab
+	" Replace the number of screen columns with the same number of spaces.
+	let l:renderedWhitespace = repeat(' ', l:width)
+    else
+	" Replace the number of screen columns with the maximal amount of tabs
+	" that fit into the width, followed by [0..'tabstop'[ spaces to get to the
+	" exact width.
+	let l:screenColumn = l:textBeforeCursorScreenColumn + 1
+	let l:renderedWhitespace = ''
+	while 1
+	    let l:tabScreenColumn = s:RenderedTabWidth(l:screenColumn)
+	    if l:tabScreenColumn <= l:lastWhitespaceAfterCursorScreenColumn
+		let l:renderedWhitespace .= "\t"
+	    else
+		let l:renderedWhitespace .= repeat(' ', l:lastWhitespaceAfterCursorScreenColumn - l:screenColumn + 1)
+		break
+	    endif
+	endwhile
+    endif
+    let l:renderedLine = substitute(l:originalLine, printf('\%%>%dv.*\%%<%dv.', l:textBeforeCursorScreenColumn, (l:lastWhitespaceAfterCursorScreenColumn + 1)), l:renderedWhitespace, '')
+    call setline('.', l:renderedLine)
 endfunction
 
 function! AlignFromCursor#Right( width )
