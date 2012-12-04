@@ -9,6 +9,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.012	02-Aug-2012	ENH: Do not :retab the entire line (which also
+"				affects leading indent and whitespace after the
+"				area, just render the modified whitespace around
+"				the cursor according to the buffer's indent
+"				settings.
 "   1.00.011	25-Jun-2012	BUG: Do not clobber the default register.
 "	010	15-Jun-2012	Split off autoload script.
 "	001	22-Jul-2006	file creation
@@ -47,7 +52,7 @@ endif
 function! s:IsLineWidthLargerThan( width )
     return ! s:IsLineWidthSmallerThan(a:width + 1)
 endfunction
-function! GetWhitespaceAroundCursorScreenColumns()
+function! s:GetWhitespaceAroundCursorScreenColumns()
     let l:originalCursorPos = getpos('.')
     if search('^\s*\%#', 'bcn', line('.'))
 	let l:textBeforeCursorScreenColumn = 0
@@ -71,11 +76,13 @@ function! GetWhitespaceAroundCursorScreenColumns()
     return [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn]
 endfunction
 function! s:RenderedTabWidth( virtcol )
-    return 999
+    let l:overflow = (a:virtcol - 1 + &l:tabstop) % &l:tabstop
+    return a:virtcol + &l:tabstop - l:overflow
 endfunction
-function! RetabFromCursor()
+function! s:RetabFromCursor()
     let l:originalLine = getline('.')
-    let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = GetWhitespaceAroundCursorScreenColumns()
+    let l:originalCursorVirtcol = virtcol('.')
+    let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = s:GetWhitespaceAroundCursorScreenColumns()
     if l:lastWhitespaceAfterCursorScreenColumn == 0
 	" There's no whitespace around the cursor, therefore, nothing to do.
 	return
@@ -93,16 +100,19 @@ function! RetabFromCursor()
 	let l:renderedWhitespace = ''
 	while 1
 	    let l:tabScreenColumn = s:RenderedTabWidth(l:screenColumn)
-	    if l:tabScreenColumn <= l:lastWhitespaceAfterCursorScreenColumn
+	    if l:tabScreenColumn <= l:lastWhitespaceAfterCursorScreenColumn + 1
 		let l:renderedWhitespace .= "\t"
+		let l:screenColumn = l:tabScreenColumn
 	    else
 		let l:renderedWhitespace .= repeat(' ', l:lastWhitespaceAfterCursorScreenColumn - l:screenColumn + 1)
 		break
 	    endif
 	endwhile
     endif
+
     let l:renderedLine = substitute(l:originalLine, printf('\%%>%dv.*\%%<%dv.', l:textBeforeCursorScreenColumn, (l:lastWhitespaceAfterCursorScreenColumn + 1)), l:renderedWhitespace, '')
     call setline('.', l:renderedLine)
+    execute 'normal!' l:originalCursorVirtcol . '|'
 endfunction
 
 function! AlignFromCursor#Right( width )
