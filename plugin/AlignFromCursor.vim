@@ -11,7 +11,12 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"   1.00.010	15-Jun-2012	Implement analog :LeftAlignFromCursor and
+"   1.00.011	01-Aug-2012	Use the current line for the no-op readonly /
+"				nomodifiable check instead of line 1 to avoid
+"				undo reporting "2 changes".
+"				FIX: Actually handle [count] in the previous /
+"				next mappings, as documented.
+"	010	15-Jun-2012	Implement analog :LeftAlignFromCursor and
 "				<Leader>ln and <Leader>lp mappings, too.
 "				Rename script to AlignFromCursor.vim.
 "				Split off documentation and autoload script.
@@ -64,39 +69,64 @@ if exists('g:loaded_AlignFromCursor') || (v:version < 700)
     finish
 endif
 let g:loaded_AlignFromCursor = 1
+let s:save_cpo = &cpo
+set cpo&vim
 
 "- commands --------------------------------------------------------------------
 
-command! -bar -range -nargs=? RightAlignFromCursor call setline(1, getline(1)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Right'), AlignFromCursor#GetTextWidth(<q-args>))
-command! -bar -range -nargs=? LeftAlignFromCursor  call setline(1, getline(1)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Left' ), AlignFromCursor#GetTextWidth(<q-args>))
+command! -bar -range -nargs=? RightAlignFromCursor call setline(<line1>, getline(<line1>)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Right'), AlignFromCursor#GetTextWidth(<q-args>))
+command! -bar -range -nargs=? LeftAlignFromCursor  call setline(<line1>, getline(<line1>)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Left' ), AlignFromCursor#GetTextWidth(<q-args>))
 
 
 "- mappings --------------------------------------------------------------------
 
-nnoremap <silent> <Plug>RightAlignFromCursor :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#Right(AlignFromCursor#GetTextWidth(v:count))<Bar>silent! call repeat#set("\<lt>Plug>RightAlignFromCursor")<CR>
+nnoremap <silent> <Plug>RightAlignFromCursor :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#Right(AlignFromCursor#GetTextWidth(v:count))<Bar>
+\silent! call repeat#set("\<lt>Plug>RightAlignFromCursor")<CR>
+nnoremap <silent> <Plug>LeftAlignFromCursor :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#Left(AlignFromCursor#GetTextWidth(v:count))<Bar>
+\silent! call repeat#set("\<lt>Plug>LeftAlignFromCursor")<CR>
+
 if ! hasmapto('<Plug>RightAlignFromCursor', 'n')
     nmap <silent> <Leader>ri <Plug>RightAlignFromCursor
 endif
-nnoremap <silent> <Plug>LeftAlignFromCursor :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#Left(AlignFromCursor#GetTextWidth(v:count))<Bar>silent! call repeat#set("\<lt>Plug>LeftAlignFromCursor")<CR>
 if ! hasmapto('<Plug>LeftAlignFromCursor', 'n')
     nmap <silent> <Leader>le <Plug>LeftAlignFromCursor
 endif
 
-nnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#RightToRelativeLine(-1)<Bar>silent! call repeat#set("\<lt>Plug>RightAlignToPreviousLine")<CR>
+
+nnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#RightToRelativeLine(-1 * v:count1)<Bar>
+\silent! call repeat#set("\<lt>Plug>RightAlignToPreviousLine")<CR>
+nnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#RightToRelativeLine(v:count1)<Bar>
+\silent! call repeat#set("\<lt>Plug>RightAlignToNextLine")<CR>
+nnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#LeftToRelativeLine(-1 * v:count1)<Bar>
+\silent! call repeat#set("\<lt>Plug>LeftAlignToPreviousLine")<CR>
+nnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#LeftToRelativeLine(v:count1)<Bar>
+\silent! call repeat#set("\<lt>Plug>LeftAlignToNextLine")<CR>
+
 if ! hasmapto('<Plug>RightAlignToPreviousLine', 'n')
     nmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
 endif
-nnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#RightToRelativeLine(1) <Bar>silent! call repeat#set("\<lt>Plug>RightAlignToNextLine")<CR>
 if ! hasmapto('<Plug>RightAlignToNextLine', 'n')
     nmap <silent> <Leader>rn <Plug>RightAlignToNextLine
 endif
-nnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#LeftToRelativeLine(-1)<Bar>silent! call repeat#set("\<lt>Plug>LeftAlignToPreviousLine")<CR>
 if ! hasmapto('<Plug>LeftAlignToPreviousLine', 'n')
     nmap <silent> <Leader>lp <Plug>LeftAlignToPreviousLine
 endif
-nnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>call setline(1, getline(1))<Bar>call AlignFromCursor#LeftToRelativeLine(1) <Bar>silent! call repeat#set("\<lt>Plug>LeftAlignToNextLine")<CR>
 if ! hasmapto('<Plug>LeftAlignToNextLine', 'n')
     nmap <silent> <Leader>ln <Plug>LeftAlignToNextLine
 endif
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
