@@ -87,6 +87,11 @@ IDEAS						       *AlignFromCursor-ideas*
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
 
+1.10	02-Aug-2012
+ENH: Do not :retab the entire line (which also affects leading indent and
+whitespace after the area, just render the modified whitespace around the
+cursor according to the buffer's indent settings.
+
 1.00	01-Aug-2012
 First published version.
 
