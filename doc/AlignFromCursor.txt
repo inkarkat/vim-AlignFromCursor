@@ -87,6 +87,13 @@ IDEAS						       *AlignFromCursor-ideas*
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
 
+1.11	05-Dec-2012
+BUG: On repeat, the original [count] is overridden by the align commands,
+causing e.g. a toggling of right-align and align to column 1 on repeated
+<Leader>ri. Need to save the original v:count and pass that to repeat#set().
+Doing this in new wrapper functions AlignFromCursor#Mapping() and
+AlignFromCursor#MappingRelative().
+
 1.10	02-Aug-2012
 ENH: Do not :retab the entire line (which also affects leading indent and
 whitespace after the area, just render the modified whitespace around the
