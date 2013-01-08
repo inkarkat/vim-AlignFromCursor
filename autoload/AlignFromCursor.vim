@@ -9,6 +9,14 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.11.013	05-Dec-2012	BUG: On repeat, the original [count] is
+"				overridden by the align commands, causing e.g. a
+"				toggling of right-align and align to column 1 on
+"				repeated <Leader>ri. Need to save the original
+"				v:count and pass that to repeat#set(). Doing
+"				this in new wrapper functions
+"				AlignFromCursor#Mapping() and
+"				AlignFromCursor#MappingRelative().
 "   1.10.012	02-Aug-2012	ENH: Do not :retab the entire line (which also
 "				affects leading indent and whitespace after the
 "				area, just render the modified whitespace around
@@ -233,6 +241,16 @@ function! AlignFromCursor#LeftToRelativeLine( offset )
     let l:lineNum = s:LineNumFromOffset(a:offset)
     if l:lineNum == -1 | return | endif
     call AlignFromCursor#Left(indent(l:lineNum) + 1)
+endfunction
+
+
+function! AlignFromCursor#Mapping( Func, count, repeatMapping )
+    call call(a:Func, [AlignFromCursor#GetTextWidth(a:count)])
+    silent! call repeat#set(a:repeatMapping, a:count)
+endfunction
+function! AlignFromCursor#MappingRelative( Func, factor, count, repeatMapping )
+    call call(a:Func, [a:factor * a:count])
+    silent! call repeat#set(a:repeatMapping, a:count)
 endfunction
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
