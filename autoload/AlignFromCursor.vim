@@ -3,12 +3,20 @@
 " DEPENDENCIES:
 "   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2)
 "
-" Copyright: (C) 2006-2012 Ingo Karkat
+" Copyright: (C) 2006-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.12.014	09-Jan-2013	Fix slowness of :RightAlignFromCursor in
+"				connection with plugins like recover.vim, caused
+"				by the repeated triggers of InsertEnter /
+"				InsertLeave events inserting a single space.
+"				Use setline() in new s:InsertSpaces() function
+"				to avoid any such events. This function also
+"				allows control of the cursor position, and
+"				avoids clobbering the ". register.
 "   1.11.013	05-Dec-2012	BUG: On repeat, the original [count] is
 "				overridden by the align commands, causing e.g. a
 "				toggling of right-align and align to column 1 on
@@ -40,6 +48,7 @@ function! s:DeleteWhitespaceAroundCursor()
     else
 	return 0
     endif
+
     return 1
 endfunction
 if exists('*strdisplaywidth')
@@ -122,6 +131,14 @@ function! s:RetabFromCursor()
     call setline('.', l:renderedLine)
     execute 'normal!' l:originalCursorVirtcol . '|'
 endfunction
+function! s:InsertSpaces( isMoveCursor, num )
+    let l:line = getline('.')
+    let l:col = col('.')
+    call setline('.', strpart(l:line, 0, l:col - 1) . repeat(' ', a:num) . strpart(l:line, l:col - 1))
+    if a:isMoveCursor
+	call cursor(0, col('.') + 1)
+    endif
+endfunction
 
 function! AlignFromCursor#Right( width )
     if ! s:IsNonWhitespaceAfterCursor()
@@ -147,11 +164,15 @@ function! AlignFromCursor#Right( width )
     " used.
     let l:didInsert = 0
     while s:IsLineWidthSmallerThan(a:width)
-	execute "normal! i \<Esc>"
+	call s:InsertSpaces(1, 1)
 	let l:didInsert = 1
     endwhile
 
-    if s:IsLineWidthLargerThan(a:width) && l:didInsert
+    if ! l:didInsert
+	return
+    endif
+
+    if s:IsLineWidthLargerThan(a:width)
 	" The last <Space> caused one following <Tab> to jump to the next
 	" tabstop, and this caused the line to exceed the desired width. We
 	" remove this last <Space>, so that the right-alignment command is
@@ -162,9 +183,7 @@ function! AlignFromCursor#Right( width )
 
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
     " settings.
-    if l:didInsert
-	call s:RetabFromCursor()
-    endif
+    call s:RetabFromCursor()
 endfunction
 
 function! AlignFromCursor#Left( width )
@@ -191,7 +210,7 @@ function! AlignFromCursor#Left( width )
 	return
     endif
 
-    execute 'normal!' l:difference . "i \<Esc>g`["
+    call s:InsertSpaces(0, l:difference)
 
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
     " settings.
