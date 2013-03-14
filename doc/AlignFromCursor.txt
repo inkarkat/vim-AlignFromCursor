@@ -87,6 +87,11 @@ IDEAS						       *AlignFromCursor-ideas*
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
 
+1.12	10-Jan-2013
+Fix slowness of :RightAlignFromCursor in connection with plugins like
+recover.vim, caused by the repeated triggers of InsertEnter / InsertLeave
+events inserting a single space.
+
 1.11	06-Dec-2012
 BUG: On repeat, the original [count] is overridden by the align commands,
 causing e.g. a toggling of right-align and align to column 1 on repeated
@@ -104,7 +109,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2006-2012 Ingo Karkat
+Copyright: (C) 2006-2013 Ingo Karkat
 The VIM LICENSE applies to this script; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
