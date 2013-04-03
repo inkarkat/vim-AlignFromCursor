@@ -9,13 +9,13 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"   1.12.014	09-Jan-2013	Fix slowness of :RightAlignFromCursor in
+"   1.12.014	10-Jan-2013	Fix slowness of :RightAlignFromCursor in
 "				connection with plugins like recover.vim, caused
 "				by the repeated triggers of InsertEnter /
 "				InsertLeave events inserting a single space.
 "				Use setline() in new s:InsertSpaces() function
 "				to avoid any such events. This function also
-"				allows control of the cursor position, and
+"				automatically keeps the cursor position, and
 "				avoids clobbering the ". register.
 "   1.11.013	05-Dec-2012	BUG: On repeat, the original [count] is
 "				overridden by the align commands, causing e.g. a
@@ -131,13 +131,10 @@ function! s:RetabFromCursor()
     call setline('.', l:renderedLine)
     execute 'normal!' l:originalCursorVirtcol . '|'
 endfunction
-function! s:InsertSpaces( isMoveCursor, num )
+function! s:InsertSpaces( num )
     let l:line = getline('.')
     let l:col = col('.')
     call setline('.', strpart(l:line, 0, l:col - 1) . repeat(' ', a:num) . strpart(l:line, l:col - 1))
-    if a:isMoveCursor
-	call cursor(0, col('.') + 1)
-    endif
 endfunction
 
 function! AlignFromCursor#Right( width )
@@ -164,7 +161,7 @@ function! AlignFromCursor#Right( width )
     " used.
     let l:didInsert = 0
     while s:IsLineWidthSmallerThan(a:width)
-	call s:InsertSpaces(1, 1)
+	call s:InsertSpaces(1)
 	let l:didInsert = 1
     endwhile
 
@@ -210,7 +207,7 @@ function! AlignFromCursor#Left( width )
 	return
     endif
 
-    call s:InsertSpaces(0, l:difference)
+    call s:InsertSpaces(l:difference)
 
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
     " settings.
