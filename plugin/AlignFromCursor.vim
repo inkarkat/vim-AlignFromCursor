@@ -11,6 +11,14 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.11.012	05-Dec-2012	BUG: On repeat, the original [count] is
+"				overridden by the align commands, causing e.g. a
+"				toggling of right-align and align to column 1 on
+"				repeated <Leader>ri. Need to save the original
+"				v:count and pass that to repeat#set(). Doing
+"				this in new wrapper functions
+"				AlignFromCursor#Mapping() and
+"				AlignFromCursor#MappingRelative().
 "   1.00.011	01-Aug-2012	Use the current line for the no-op readonly /
 "				nomodifiable check instead of line 1 to avoid
 "				undo reporting "2 changes".
@@ -82,12 +90,10 @@ command! -bar -range -nargs=? LeftAlignFromCursor  call setline(<line1>, getline
 
 nnoremap <silent> <Plug>RightAlignFromCursor :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#Right(AlignFromCursor#GetTextWidth(v:count))<Bar>
-\silent! call repeat#set("\<lt>Plug>RightAlignFromCursor")<CR>
+\call AlignFromCursor#Mapping('AlignFromCursor#Right', v:count, "\<lt>Plug>RightAlignFromCursor")<CR>
 nnoremap <silent> <Plug>LeftAlignFromCursor :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#Left(AlignFromCursor#GetTextWidth(v:count))<Bar>
-\silent! call repeat#set("\<lt>Plug>LeftAlignFromCursor")<CR>
+\call AlignFromCursor#Mapping('AlignFromCursor#Left', v:count, "\<lt>Plug>LeftAlignFromCursor")<CR>
 
 if ! hasmapto('<Plug>RightAlignFromCursor', 'n')
     nmap <silent> <Leader>ri <Plug>RightAlignFromCursor
@@ -99,20 +105,16 @@ endif
 
 nnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#RightToRelativeLine(-1 * v:count1)<Bar>
-\silent! call repeat#set("\<lt>Plug>RightAlignToPreviousLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', -1, v:count1, "\<lt>Plug>RightAlignToPreviousLine")<CR>
 nnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#RightToRelativeLine(v:count1)<Bar>
-\silent! call repeat#set("\<lt>Plug>RightAlignToNextLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine',  1, v:count1, "\<lt>Plug>RightAlignToNextLine")<CR>
 nnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#LeftToRelativeLine(-1 * v:count1)<Bar>
-\silent! call repeat#set("\<lt>Plug>LeftAlignToPreviousLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine', -1, v:count1, "\<lt>Plug>LeftAlignToPreviousLine")<CR>
 nnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#LeftToRelativeLine(v:count1)<Bar>
-\silent! call repeat#set("\<lt>Plug>LeftAlignToNextLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  1, v:count1, "\<lt>Plug>LeftAlignToNextLine")<CR>
 
 if ! hasmapto('<Plug>RightAlignToPreviousLine', 'n')
     nmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
