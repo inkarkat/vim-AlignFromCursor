@@ -3,7 +3,6 @@
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher
 "   - AlignFromCursor.vim autoload script
-"   - vimscript #2136 repeat.vim autoload script (optional)
 "
 " Copyright: (C) 2006-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
