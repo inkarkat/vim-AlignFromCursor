@@ -4,12 +4,17 @@
 "   - Requires Vim 7.0 or higher
 "   - AlignFromCursor.vim autoload script
 "
-" Copyright: (C) 2006-2012 Ingo Karkat
+" Copyright: (C) 2006-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.13.013	08-Apr-2013	Refactor AlignFromCursor#MappingRelative()
+"				invocation.
+"				ENH: Add visual mode mappings that work on the
+"				selection and take the [count]'th above / below
+"				line.
 "   1.11.012	05-Dec-2012	BUG: On repeat, the original [count] is
 "				overridden by the align commands, causing e.g. a
 "				toggling of right-align and align to column 1 on
@@ -81,8 +86,8 @@ set cpo&vim
 
 "- commands --------------------------------------------------------------------
 
-command! -bar -range -nargs=? RightAlignFromCursor call setline(<line1>, getline(<line1>)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Right'), AlignFromCursor#GetTextWidth(<q-args>))
-command! -bar -range -nargs=? LeftAlignFromCursor  call setline(<line1>, getline(<line1>)) | call AlignFromCursor#DoRange(<line1>, <line2>, function('AlignFromCursor#Left' ), AlignFromCursor#GetTextWidth(<q-args>))
+command! -bar -range -nargs=? RightAlignFromCursor call setline(<line1>, getline(<line1>)) | call AlignFromCursor#DoRange(<line1>, <line2>, virtcol('.'), function('AlignFromCursor#Right'), AlignFromCursor#GetTextWidth(<q-args>))
+command! -bar -range -nargs=? LeftAlignFromCursor  call setline(<line1>, getline(<line1>)) | call AlignFromCursor#DoRange(<line1>, <line2>, virtcol('.'), function('AlignFromCursor#Left' ), AlignFromCursor#GetTextWidth(<q-args>))
 
 
 "- mappings --------------------------------------------------------------------
@@ -104,16 +109,16 @@ endif
 
 nnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', -1, v:count1, "\<lt>Plug>RightAlignToPreviousLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', line('.'), v:count1, -1, "\<lt>Plug>RightAlignToPreviousLine")<CR>
 nnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine',  1, v:count1, "\<lt>Plug>RightAlignToNextLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', line('.'), v:count1,  1, "\<lt>Plug>RightAlignToNextLine")<CR>
 nnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine', -1, v:count1, "\<lt>Plug>LeftAlignToPreviousLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  line('.'), v:count1, -1, "\<lt>Plug>LeftAlignToPreviousLine")<CR>
 nnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  1, v:count1, "\<lt>Plug>LeftAlignToNextLine")<CR>
+\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  line('.'), v:count1,  1, "\<lt>Plug>LeftAlignToNextLine")<CR>
 
 if ! hasmapto('<Plug>RightAlignToPreviousLine', 'n')
     nmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
@@ -126,6 +131,33 @@ if ! hasmapto('<Plug>LeftAlignToPreviousLine', 'n')
 endif
 if ! hasmapto('<Plug>LeftAlignToNextLine', 'n')
     nmap <silent> <Leader>ln <Plug>LeftAlignToNextLine
+endif
+
+
+vnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#VisualMapping('AlignFromCursor#RightToRelativeLine', v:count1, -1, "\<lt>Plug>RightAlignToPreviousLine")<CR>
+vnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#VisualMapping('AlignFromCursor#RightToRelativeLine', v:count1,  1, "\<lt>Plug>RightAlignToNextLine")<CR>
+vnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#VisualMapping('AlignFromCursor#LeftToRelativeLine', v:count1, -1, "\<lt>Plug>LeftAlignToPreviousLine")<CR>
+vnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>
+\call setline('.', getline('.'))<Bar>
+\call AlignFromCursor#VisualMapping('AlignFromCursor#LeftToRelativeLine', v:count1,  1, "\<lt>Plug>LeftAlignToNextLine")<CR>
+
+if ! hasmapto('<Plug>RightAlignToPreviousLine', 'x')
+    xmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
+endif
+if ! hasmapto('<Plug>RightAlignToNextLine', 'x')
+    xmap <silent> <Leader>rn <Plug>RightAlignToNextLine
+endif
+if ! hasmapto('<Plug>LeftAlignToPreviousLine', 'x')
+    xmap <silent> <Leader>lp <Plug>LeftAlignToPreviousLine
+endif
+if ! hasmapto('<Plug>LeftAlignToNextLine', 'x')
+    xmap <silent> <Leader>ln <Plug>LeftAlignToNextLine
 endif
 
 let &cpo = s:save_cpo
