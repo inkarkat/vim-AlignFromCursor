@@ -258,42 +258,79 @@ function! s:LineNumFromOffset( lnum, count, direction )
     endif
     return l:lineNum
 endfunction
+function! AlignFromCursor#RightToLnum( lnum )
+    call AlignFromCursor#Right(ingo#compat#strdisplaywidth(getline(a:lnum)))
+endfunction
 function! AlignFromCursor#RightToRelativeLine( lnum, count, direction )
-    let l:lineNum = s:LineNumFromOffset(a:lnum, a:count, a:direction)
-    if l:lineNum == -1 | return | endif
-    call AlignFromCursor#Right(ingo#compat#strdisplaywidth(getline(l:lineNum)))
+    let s:lineNum = s:LineNumFromOffset(a:lnum, a:count, a:direction)
+    if s:lineNum == -1 | return | endif
+    call AlignFromCursor#RightToLnum(s:lineNum)
+endfunction
+function! AlignFromCursor#LeftToLnum( lnum )
+    call AlignFromCursor#Left(indent(a:lnum) + 1)
 endfunction
 function! AlignFromCursor#LeftToRelativeLine( lnum, count, direction )
-    let l:lineNum = s:LineNumFromOffset(a:lnum, a:count, a:direction)
-    if l:lineNum == -1 | return | endif
-    call AlignFromCursor#Left(indent(l:lineNum) + 1)
+    let s:lineNum = s:LineNumFromOffset(a:lnum, a:count, a:direction)
+    if s:lineNum == -1 | return | endif
+    call AlignFromCursor#LeftToLnum(s:lineNum)
 endfunction
 
 
+function! s:Repeat( repeatMapping, repeatCount, visualRepeatCount )
+    silent! call       repeat#set(a:repeatMapping, a:repeatCount)
+    silent! call visualrepeat#set(a:repeatMapping, a:visualRepeatCount)
+endfunction
 function! AlignFromCursor#Mapping( Func, count, repeatMapping )
     call call(a:Func, [AlignFromCursor#GetTextWidth(a:count)])
     silent! call repeat#set(a:repeatMapping, a:count)
 endfunction
 function! AlignFromCursor#MappingRelative( Func, lnum, count, direction, repeatMapping )
     call call(a:Func, [a:lnum, a:count, a:direction])
-    silent! call       repeat#set(a:repeatMapping, a:count)
-    silent! call visualrepeat#set(a:repeatMapping, a:count)
+
+    " The count given to the normal mode mapping is for selecting the reference
+    " line, but when repeating, the count specifies the number of lines to apply
+    " it to. Therefore, don't store it here.
+    call s:Repeat(a:repeatMapping, -1, -1)
 endfunction
 
-function! AlignFromCursor#VisualMapping( What, count, direction, repeatMapping )
+function! s:GetVisualScreenColumn()
     " Use the start of the blockwise selection, or else align from the beginning
     " of the lines.
-    let l:screenCol = (visualmode() ==# "\<C-v>" ?
+    return (visualmode() ==# "\<C-v>" ?
     \   ingo#mbyte#virtcol#GetVirtStartColOfCurrentCharacter(line("'<"), col("'<")) :
     \   1
     \)
-
+endfunction
+function! AlignFromCursor#VisualMapping( What, count, direction, repeatMapping )
     call AlignFromCursor#DoRange(
-    \   line("'<"), line("'>"), l:screenCol,
+    \   line("'<"), line("'>"), s:GetVisualScreenColumn(),
     \   a:What, line(a:direction == -1 ? "'<" : "'>"), a:count, a:direction
     \)
-    silent! call       repeat#set(a:repeatMapping, a:count)
-    silent! call visualrepeat#set(a:repeatMapping, a:count)
+
+    " When repeating the visual mapping in normal mode, default to the same
+    " number of lines. In the visual mode mappings, we ignore the count.
+    call s:Repeat(a:repeatMapping, (line("'>") - line("'<")), -1)
+endfunction
+
+
+let s:lineNum = 0
+function! AlignFromCursor#RepeatRelativeMapping( What, count, repeatMapping )
+    call AlignFromCursor#DoRange(
+    \   line('.'), line('.') + a:count - 1, virtcol('.'),
+    \   a:What, s:lineNum
+    \)
+
+    call s:Repeat(a:repeatMapping, a:count, a:count)
+endfunction
+function! AlignFromCursor#VisualRepeatRelativeMapping( What, repeatMapping )
+    call AlignFromCursor#DoRange(
+    \   line("'<"), line("'>"), s:GetVisualScreenColumn(),
+    \   a:What, s:lineNum
+    \)
+
+    " When repeating the visual mapping in normal mode, default to the same
+    " number of lines. In the visual mode mappings, we ignore the count.
+    call s:Repeat(a:repeatMapping, (line("'>") - line("'<")), -1)
 endfunction
 
 let &cpo = s:save_cpo
