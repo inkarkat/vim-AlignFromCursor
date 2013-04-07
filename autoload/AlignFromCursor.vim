@@ -1,8 +1,11 @@
 " AlignFromCursor.vim: Perform :left / :right only for the text part right of the cursor.
 "
 " DEPENDENCIES:
-"   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2)
+"   - ingo/compat.vim autoload script
+"   - ingo/folds.vim autoload script
+"   - ingo/mbyte/virtcol.vim autoload script
 "   - vimscript #2136 repeat.vim autoload script (optional)
+"   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "
 " Copyright: (C) 2006-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -10,6 +13,17 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.20.015	08-Apr-2013	Use visible lines (with the help of
+"				ingo#folds#NextVisibleLine()) for the relative
+"				mappings.
+"				Use ingo#compat#strdisplaywidth() to avoid the
+"				direct dependency to EchoWithoutScrolling.vim.
+"				Refactor s:LineNumFromOffset(),
+"				AlignFromCursor#MappingRelative(), and the
+"				called targets to take separate count and
+"				direction.
+"				ENH: Add visual mode mappings through
+"				AlignFromCursor#VisualMapping().
 "   1.12.014	10-Jan-2013	Fix slowness of :RightAlignFromCursor in
 "				connection with plugins like recover.vim, caused
 "				by the repeated triggers of InsertEnter /
@@ -34,6 +48,8 @@
 "   1.00.011	25-Jun-2012	BUG: Do not clobber the default register.
 "	010	15-Jun-2012	Split off autoload script.
 "	001	22-Jul-2006	file creation
+let s:save_cpo = &cpo
+set cpo&vim
 
 function! s:IsNonWhitespaceAfterCursor()
     return search('\%#\s*\S', 'cn', line('.'))
@@ -53,16 +69,10 @@ function! s:DeleteWhitespaceAroundCursor()
     return 1
 endfunction
 if exists('*strdisplaywidth')
-    function! s:GetWidthOfLine( lineNum )
-	return strdisplaywidth(getline(a:lineNum))
-    endfunction
     function! s:IsLineWidthSmallerThan( width )
 	return strdisplaywidth(getline('.')) < a:width
     endfunction
 else
-    function! s:GetWidthOfLine( lineNum )
-	return EchoWithoutScrolling#DetermineVirtColNum(getline(a:lineNum))
-    endfunction
     function! s:IsLineWidthSmallerThan( width )
 	return match(getline('.'), '\%>' . a:width . 'v$') == -1
     endfunction
@@ -215,17 +225,16 @@ function! AlignFromCursor#Left( width )
     call s:RetabFromCursor()
 endfunction
 
-function! AlignFromCursor#DoRange( firstLine, lastLine, What, width )
+function! AlignFromCursor#DoRange( firstLine, lastLine, screenCol, What, ... )
     if a:firstLine == a:lastLine
 	" Commonly, just the current line is processed.
-	return call(a:What, [a:width])
+	return call(a:What, a:000)
     endif
 
-    let l:cursorScreenColumn = virtcol('.')
     for l:line in range(a:firstLine, a:lastLine)
 	execute l:line
-	execute 'normal!' l:cursorScreenColumn . '|'
-	call call(a:What, [a:width])
+	execute 'normal!' a:screenCol . '|'
+	call call(a:What, a:000)
     endfor
 endfunction
 
@@ -241,21 +250,21 @@ function! AlignFromCursor#GetTextWidth( width )
     return l:width
 endfunction
 
-function! s:LineNumFromOffset( offset )
-    let l:lineNum = line('.') + a:offset
+function! s:LineNumFromOffset( lnum, count, direction )
+    let l:lineNum = ingo#folds#RelativeWindowLine(a:lnum, a:count, a:direction, -1)
     if l:lineNum < 1 || l:lineNum > line('$')
 	execute "normal! \<C-\>\<C-n>\<Esc>" | " Beep.
 	return -1
     endif
     return l:lineNum
 endfunction
-function! AlignFromCursor#RightToRelativeLine( offset )
-    let l:lineNum = s:LineNumFromOffset(a:offset)
+function! AlignFromCursor#RightToRelativeLine( lnum, count, direction )
+    let l:lineNum = s:LineNumFromOffset(a:lnum, a:count, a:direction)
     if l:lineNum == -1 | return | endif
-    call AlignFromCursor#Right(s:GetWidthOfLine(l:lineNum))
+    call AlignFromCursor#Right(ingo#compat#strdisplaywidth(getline(l:lineNum)))
 endfunction
-function! AlignFromCursor#LeftToRelativeLine( offset )
-    let l:lineNum = s:LineNumFromOffset(a:offset)
+function! AlignFromCursor#LeftToRelativeLine( lnum, count, direction )
+    let l:lineNum = s:LineNumFromOffset(a:lnum, a:count, a:direction)
     if l:lineNum == -1 | return | endif
     call AlignFromCursor#Left(indent(l:lineNum) + 1)
 endfunction
@@ -265,9 +274,28 @@ function! AlignFromCursor#Mapping( Func, count, repeatMapping )
     call call(a:Func, [AlignFromCursor#GetTextWidth(a:count)])
     silent! call repeat#set(a:repeatMapping, a:count)
 endfunction
-function! AlignFromCursor#MappingRelative( Func, factor, count, repeatMapping )
-    call call(a:Func, [a:factor * a:count])
-    silent! call repeat#set(a:repeatMapping, a:count)
+function! AlignFromCursor#MappingRelative( Func, lnum, count, direction, repeatMapping )
+    call call(a:Func, [a:lnum, a:count, a:direction])
+    silent! call       repeat#set(a:repeatMapping, a:count)
+    silent! call visualrepeat#set(a:repeatMapping, a:count)
 endfunction
 
+function! AlignFromCursor#VisualMapping( What, count, direction, repeatMapping )
+    " Use the start of the blockwise selection, or else align from the beginning
+    " of the lines.
+    let l:screenCol = (visualmode() ==# "\<C-v>" ?
+    \   ingo#mbyte#virtcol#GetVirtStartColOfCurrentCharacter(line("'<"), col("'<")) :
+    \   1
+    \)
+
+    call AlignFromCursor#DoRange(
+    \   line("'<"), line("'>"), l:screenCol,
+    \   a:What, line(a:direction == -1 ? "'<" : "'>"), a:count, a:direction
+    \)
+    silent! call       repeat#set(a:repeatMapping, a:count)
+    silent! call visualrepeat#set(a:repeatMapping, a:count)
+endfunction
+
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
