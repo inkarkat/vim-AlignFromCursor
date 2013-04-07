@@ -2,6 +2,7 @@
 "
 " DEPENDENCIES:
 "   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2)
+"   - vimscript #2136 repeat.vim autoload script (optional)
 "
 " Copyright: (C) 2006-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
