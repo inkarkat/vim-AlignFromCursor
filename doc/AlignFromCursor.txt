@@ -34,7 +34,7 @@ RELATED WORKS								     *
 
 ==============================================================================
 USAGE						       *AlignFromCursor-usage*
-					   *<Leader>le* *:LeftAlignFromCursor*
+			    *<Leader>le* *v_<Leader>le* *:LeftAlignFromCursor*
 [width]<Leader>le
 :[range]LeftAlignFromCursor [width]
 			Left-align the text part right of the cursor to
@@ -42,12 +42,17 @@ USAGE						       *AlignFromCursor-usage*
 			'textwidth' is 0). Cp. |:left|.
 			Applies to all lines in [range], based on the current
 			cursor position.
-						     *<Leader>lp* *<Leader>ln*
+			In visual mode: Applies to the selected text, based on
+			the leftmost selected column.
+		       *<Leader>lp* *<Leader>ln* *v_<Leader>lp* *v_<Leader>ln*
 [count]<Leader>lp	Left-align the text part right of the cursor to the
-[count]<Leader>ln	indent of the [count]'th previous / next line.
+[count]<Leader>ln	indent of the [count]'th previous / next visible line.
+			In visual mode: Left-align the selected text to the
+			indent of the [count]'th visible line above / below
+			the visual selection.
 
 
-					  *<Leader>ri* *:RightAlignFromCursor*
+			   *<Leader>ri* *v_<Leader>ri* *:RightAlignFromCursor*
 [width]<Leader>ri
 :[range]RightAlignFromCursor [width]
 			Right-align the text part right of the cursor to
@@ -55,9 +60,14 @@ USAGE						       *AlignFromCursor-usage*
 			'textwidth' is 0). Cp. |:right|.
 			Applies to all lines in [range], based on the current
 			cursor position.
-						     *<Leader>rp* *<Leader>rn*
+			In visual mode: Applies to the selected text, based on
+			the leftmost selected column.
+		       *<Leader>rp* *<Leader>rn* *v_<Leader>rp* *v_<Leader>rn*
 [count]<Leader>rp	Right-align the text part right of the cursor to the
-[count]<Leader>rn	width of the [count]'th previous / next line.
+[count]<Leader>rn	width of the [count]'th previous / next visible line.
+			In visual mode: Right-align the selected text to the
+			width of the [count]'th visible line above / below
+			the visual selection.
 
 ==============================================================================
 INSTALLATION					*AlignFromCursor-installation*
@@ -73,7 +83,10 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					*AlignFromCursor-dependencies*
 
 - Requires Vim 7.0 or higher.
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.004 or
+  higher.
 - repeat.vim (vimscript #2136) plugin (optional)
+- visualrepeat.vim (vimscript #3848) plugin (optional)
 
 ==============================================================================
 LIMITATIONS					 *AlignFromCursor-limitations*
@@ -86,6 +99,18 @@ IDEAS						       *AlignFromCursor-ideas*
 
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
+
+2.00	RELEASEME
+- Use visible lines for the relative [count] in <Leader>lp / <Leader>ln /
+  <Leader>rp / <Leader>rn. This is consistent with other Vim commands and
+  allows benefitting from 'relativenumber'. When addressing a folded line, the
+  indent of the first contained line is used.
+- ENH: Add visual mode <Leader>lp / <Leader>ln / <Leader>rp / <Leader>rn
+  mappings that work on the selection and take the [count]'th above / below
+  line.
+- CHG: Make repeats of the mappings use the previous width instead of just
+  re-applying them at the current cursor position. DWIM.
+- Add dependency to ingo-library (vimscript #4433).
 
 1.12	10-Jan-2013
 Fix slowness of :RightAlignFromCursor in connection with plugins like
