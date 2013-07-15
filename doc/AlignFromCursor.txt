@@ -5,6 +5,7 @@
 description			|AlignFromCursor-description|
 usage				|AlignFromCursor-usage|
 installation			|AlignFromCursor-installation|
+configuration			|AlignFromCursor-configuration|
 limitations			|AlignFromCursor-limitations|
 known problems			|AlignFromCursor-known-problems|
 todo				|AlignFromCursor-todo|
@@ -88,6 +89,27 @@ DEPENDENCIES					*AlignFromCursor-dependencies*
 - repeat.vim (vimscript #2136) plugin (optional)
 - visualrepeat.vim (vimscript #3848) plugin (optional)
 
+==============================================================================
+CONFIGURATION				       *AlignFromCursor-configuration*
+
+For a permanent configuration, put the following commands into your |vimrc|:
+						       *AlignFromCursor-remap*
+If you want to use different mappings, map your keys to the
+<Plug>(Left|Right)Align... mapping targets _before_ sourcing the script (e.g.
+in your |vimrc|): >
+    nmap <silent> <Leader>ri <Plug>RightAlignFromCursor
+    nmap <silent> <Leader>le <Plug>LeftAlignFromCursor
+    xmap <silent> <Leader>ri <Plug>RightAlignFromCursor
+    xmap <silent> <Leader>le <Plug>LeftAlignFromCursor
+    nmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
+    nmap <silent> <Leader>rn <Plug>RightAlignToNextLine
+    nmap <silent> <Leader>lp <Plug>LeftAlignToPreviousLine
+    nmap <silent> <Leader>ln <Plug>LeftAlignToNextLine
+    xmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
+    xmap <silent> <Leader>rn <Plug>RightAlignToNextLine
+    xmap <silent> <Leader>lp <Plug>LeftAlignToPreviousLine
+    xmap <silent> <Leader>ln <Plug>LeftAlignToNextLine
+<
 ==============================================================================
 LIMITATIONS					 *AlignFromCursor-limitations*
 
