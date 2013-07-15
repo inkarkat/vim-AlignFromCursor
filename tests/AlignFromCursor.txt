@@ -1,11 +1,21 @@
 dfgsdfg dfg dfg sfgs	   dfg sgsgdg g
+								    X here is the mark
 					   dfgsdfg rfg dfg sfgs		dfg sgsgdg g
-					   dfgsdfg rfg dfg sfgs	       dfg sgsgdg g
-					   dfgsdfg rfg dfg sfgs	      dfg sgsgdg g
-					   dfgsdfg rfg dfg sfgs	     dfg sgsgdg g
-					   dfgsdfg rfg dfg sfgs	    dfg sgsgdg X
-					   dfgsdfg rfg dfg sfgs	   dfg sgsgdg g
-					   dfgsdfg rfg dfg sfgs	 dfg sgsgdg g
+					   dfgsdfg rfg dfg sfgs	       dfg sxgsgdg g
+					   dfgsdfg rfg dfg sfgs	      dfg sgxxsgdg g
+					   dfgsdfg rfg dfg sfgs	     dfg sgsxxxgdg g
+					   dfgsdfg rfg dfg sfgs	    dfg sgsgxxxdg X
+					   dfgsdfg rfg dfg sfgs	   dfg sgxxxsgdg g
+					   dfgsdfg rfg dfg sfgs	 dfg sgsgxxxxxxxxdg g
+								          Y there a mark
+		dfg sgsgdg g
+	       dfg sxgsgdg g
+	      dfg sgxxsgdg g
+	     dfg sgsxxxgdg g
+	    dfg sgsgxxxdg X
+	   dfg sgxxxsgdg g
+	 dfg sgsgxxxxxxxxdg g
+
 		    sdfgsdfg	 sdfsdf		    sdfadfasdfsdf
 		    dfgdfg  sfdf
 		     ssdf			       sdfsdfsdfsdf	k
