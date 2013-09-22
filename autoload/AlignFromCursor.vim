@@ -1,4 +1,4 @@
-" AlignFromCursor.vim: Perform :left / :right only for the text part right of the cursor.
+" AlignFromCursor.vim: Perform :left / :right only for the text on and right of the cursor.
 "
 " DEPENDENCIES:
 "   - ingo/compat.vim autoload script
@@ -13,6 +13,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.00.016	16-Jul-2013	BUG: Don't delete whitespace immediately after
+"				the cursor position if the cursor rests on a
+"				non-whitespace character. This makes the
+"				alignment _after_ the cursor position, not
+"				_from_ it.
 "   2.00.015	08-Apr-2013	Use visible lines (with the help of
 "				ingo#folds#NextVisibleLine()) for the relative
 "				mappings.
@@ -58,8 +63,6 @@ function! s:DeleteWhitespaceAroundCursor()
     " ... but only if there's still a non-whitespace after the cursor.
     if search('\%#\s\+\S', 'cn', line('.'))
 	normal! "_diw
-    elseif search('\%#.\s\+\S', 'cn', line('.'))
-	normal! l"_diw
     elseif search('\s\%#\S', 'bn', line('.'))
 	normal! h"_diw
     else
