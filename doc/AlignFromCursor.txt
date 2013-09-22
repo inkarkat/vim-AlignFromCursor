@@ -122,7 +122,7 @@ IDEAS						       *AlignFromCursor-ideas*
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
 
-2.00	RELEASEME
+2.00	19-Jul-2013
 - Use visible lines for the relative [count] in <Leader>lp / <Leader>ln /
   <Leader>rp / <Leader>rn. This is consistent with other Vim commands and
   allows benefitting from 'relativenumber'. When addressing a folded line, the
@@ -137,7 +137,8 @@ HISTORY						     *AlignFromCursor-history*
   the cursor position, not _from_ it. (Though this was a nice DWIM feature
   when on the last character of a word; but it makes it impossible to do an
   actual align from there, and is inconsistent.)
-- Add dependency to ingo-library (vimscript #4433).
+- Add dependency to ingo-library (vimscript #4433). *** You need to separately
+  install ingo-library (vimscript #4433) version 1.004 (or higher)! ***
 
 1.12	10-Jan-2013
 Fix slowness of :RightAlignFromCursor in connection with plugins like
