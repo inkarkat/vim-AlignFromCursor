@@ -86,6 +86,7 @@ DEPENDENCIES					*AlignFromCursor-dependencies*
 - Requires Vim 7.0 or higher.
 - Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.004 or
   higher.
+- IndentTab.vim (vimscript #3848) plugin (optional)
 - repeat.vim (vimscript #2136) plugin (optional)
 - visualrepeat.vim (vimscript #3848) plugin (optional)
 
@@ -121,6 +122,11 @@ IDEAS						       *AlignFromCursor-ideas*
 
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
+
+2.01	RELEASEME
+- Support the IndentTab setting provided by the optional IndentTab plugin
+  (vimscript #4243). I.e. align with spaces when there's text before the
+  cursor.
 
 2.00	19-Jul-2013
 - Use visible lines for the relative [count] in <Leader>lp / <Leader>ln /
