@@ -84,7 +84,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					*AlignFromCursor-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.004 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.016 or
   higher.
 - IndentTab.vim (vimscript #3848) plugin (optional)
 - repeat.vim (vimscript #2136) plugin (optional)
@@ -127,6 +127,7 @@ HISTORY						     *AlignFromCursor-history*
 - Support the IndentTab setting provided by the optional IndentTab plugin
   (vimscript #4243). I.e. align with spaces when there's text before the
   cursor.
+  *** You need to update to ingo-library (vimscript #4433) version 1.016! ***
 
 2.00	19-Jul-2013
 - Use visible lines for the relative [count] in <Leader>lp / <Leader>ln /
