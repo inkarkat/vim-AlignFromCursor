@@ -9,7 +9,7 @@
 "   - vimscript #2136 repeat.vim autoload script (optional)
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "
-" Copyright: (C) 2006-2013 Ingo Karkat
+" Copyright: (C) 2006-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -90,7 +90,20 @@ endif
 function! s:IsLineWidthLargerThan( width )
     return ! s:IsLineWidthSmallerThan(a:width + 1)
 endfunction
-function! s:GetWhitespaceAroundCursorScreenColumns()
+function! s:GetWhitespaceAroundCursorScreenColumnsNew( line, cursorCol )
+    let l:textBeforeCursorCol = match(a:line, printf('\s\+\%%%dc\|\%%%dc\s', a:cursorCol, a:cursorCol))
+    if l:textBeforeCursorCol == -1
+	return [0, 0]
+    endif
+
+    let l:lastWhitespaceAfterCursorCol = matchend(a:line, printf('\%%%dc\s\+\|\s\ze\%%%dc\S', a:cursorCol, a:cursorCol))
+    if l:lastWhitespaceAfterCursorCol == -1
+	return [0, 0]
+    endif
+
+    return [ingo#compat#strdisplaywidth(strpart(a:line, 0, l:textBeforeCursorCol)), ingo#compat#strdisplaywidth(strpart(a:line, 0, l:lastWhitespaceAfterCursorCol))]
+endfunction
+function! s:GetWhitespaceAroundCursorScreenColumns( line, cursorCol )
     let l:originalCursorPos = getpos('.')
     if search('^\s*\%#', 'bcn', line('.'))
 	let l:textBeforeCursorScreenColumn = 0
@@ -120,7 +133,7 @@ endfunction
 function! s:RetabFromCursor()
     let l:originalLine = getline('.')
     let l:originalCursorVirtcol = virtcol('.')
-    let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = s:GetWhitespaceAroundCursorScreenColumns()
+    let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = s:GetWhitespaceAroundCursorScreenColumns(l:originalLine, col('.'))
     if l:lastWhitespaceAfterCursorScreenColumn == 0
 	" There's no whitespace around the cursor, therefore, nothing to do.
 	return
