@@ -1,4 +1,4 @@
-" AlignFromCursor.vim: Perform :left / :right only for the text part right of the cursor.
+" AlignFromCursor.vim: Perform :left / :right only for the text on and right of the cursor.
 "
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher
