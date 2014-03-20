@@ -20,6 +20,8 @@
 "				a more efficient one (at least when a native
 "				strdisplaywidth() is available) that does not
 "				need to move around the buffer.
+"				Extract AlignFromCursor#GetRetabbedFromCol() and
+"				expose for reuse.
 "   2.01.018	11-Dec-2013	Use ingo#cursor#Set().
 "   2.01.017	23-Sep-2013	Support the IndentTab setting provided by the
 "				optional IndentTab plugin (vimscript #4243).
@@ -112,10 +114,8 @@ function! s:RenderedTabWidth( virtcol )
     let l:overflow = (a:virtcol - 1 + &l:tabstop) % &l:tabstop
     return a:virtcol + &l:tabstop - l:overflow
 endfunction
-function! s:RetabFromCursor()
-    let l:originalLine = getline('.')
-    let l:originalCursorVirtcol = virtcol('.')
-    let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = s:GetWhitespaceAroundCursorScreenColumns(l:originalLine, col('.'))
+function! AlignFromCursor#GetRetabbedFromCol( line, col )
+    let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = s:GetWhitespaceAroundCursorScreenColumns(a:line, a:col)
     if l:lastWhitespaceAfterCursorScreenColumn == 0
 	" There's no whitespace around the cursor, therefore, nothing to do.
 	return
@@ -127,7 +127,7 @@ function! s:RetabFromCursor()
     let l:isIndentTab = 0
     silent! let l:isIndentTab = IndentTab#Info#IndentTab()
 
-    if &l:expandtab || l:isIndentTab && strpart(l:originalLine, 0, col('.') - 1) =~# '\S'
+    if &l:expandtab || l:isIndentTab && strpart(a:line, 0, a:col - 1) =~# '\S'
 	" Replace the number of screen columns with the same number of spaces.
 	let l:renderedWhitespace = repeat(' ', l:width)
     else
@@ -148,8 +148,18 @@ function! s:RetabFromCursor()
 	endwhile
     endif
 
-    let l:renderedLine = substitute(l:originalLine, printf('\%%>%dv.*\%%<%dv.', l:textBeforeCursorScreenColumn, (l:lastWhitespaceAfterCursorScreenColumn + 1)), l:renderedWhitespace, '')
-    call setline('.', l:renderedLine)
+    return substitute(a:line,
+    \   printf('\%%>%dv.*\%%<%dv.',
+    \       l:textBeforeCursorScreenColumn,
+    \       (l:lastWhitespaceAfterCursorScreenColumn + 1)
+    \   ),
+    \   l:renderedWhitespace,
+    \   ''
+    \)
+endfunction
+function! s:RetabFromCursor()
+    let l:originalCursorVirtcol = virtcol('.')
+    call setline('.', AlignFromCursor#GetRetabbedFromCol(getline('.'), col('.')))
     call ingo#cursor#Set(0, l:originalCursorVirtcol)
 endfunction
 function! s:InsertSpaces( num )
