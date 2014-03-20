@@ -15,6 +15,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.02.019	21-Mar-2014	Replace implementation of
+"				s:GetWhitespaceAroundCursorScreenColumns() with
+"				a more efficient one (at least when a native
+"				strdisplaywidth() is available) that does not
+"				need to move around the buffer.
 "   2.01.018	11-Dec-2013	Use ingo#cursor#Set().
 "   2.01.017	23-Sep-2013	Support the IndentTab setting provided by the
 "				optional IndentTab plugin (vimscript #4243).
@@ -90,7 +95,7 @@ endif
 function! s:IsLineWidthLargerThan( width )
     return ! s:IsLineWidthSmallerThan(a:width + 1)
 endfunction
-function! s:GetWhitespaceAroundCursorScreenColumnsNew( line, cursorCol )
+function! s:GetWhitespaceAroundCursorScreenColumns( line, cursorCol )
     let l:textBeforeCursorCol = match(a:line, printf('\s\+\%%%dc\|\%%%dc\s', a:cursorCol, a:cursorCol))
     if l:textBeforeCursorCol == -1
 	return [0, 0]
@@ -102,29 +107,6 @@ function! s:GetWhitespaceAroundCursorScreenColumnsNew( line, cursorCol )
     endif
 
     return [ingo#compat#strdisplaywidth(strpart(a:line, 0, l:textBeforeCursorCol)), ingo#compat#strdisplaywidth(strpart(a:line, 0, l:lastWhitespaceAfterCursorCol))]
-endfunction
-function! s:GetWhitespaceAroundCursorScreenColumns( line, cursorCol )
-    let l:originalCursorPos = getpos('.')
-    if search('^\s*\%#', 'bcn', line('.'))
-	let l:textBeforeCursorScreenColumn = 0
-	normal! 0
-    else
-	if search('\S\s*\%#\s\|\S\s\+\%#\S', 'b', line('.'))
-	    let l:textBeforeCursorScreenColumn = virtcol('.')
-	    normal! l
-	else
-	    let l:textBeforeCursorScreenColumn = 0
-	endif
-    endif
-
-    if search('\%#\s\+', 'ce', line('.'))
-	let l:lastWhitespaceAfterCursorScreenColumn = virtcol('.')
-    else
-	let l:lastWhitespaceAfterCursorScreenColumn = 0
-    endif
-    call setpos('.', l:originalCursorPos)
-
-    return [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn]
 endfunction
 function! s:RenderedTabWidth( virtcol )
     let l:overflow = (a:virtcol - 1 + &l:tabstop) % &l:tabstop
