@@ -2,6 +2,7 @@
 "
 " DEPENDENCIES:
 "   - ingo/compat.vim autoload script
+"   - ingo/cursor.vim autoload script
 "   - ingo/folds.vim autoload script
 "   - ingo/mbyte/virtcol.vim autoload script
 "   - IndentTab/Info.vim autoload script (optional)
@@ -14,6 +15,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.01.018	11-Dec-2013	Use ingo#cursor#Set().
 "   2.01.017	23-Sep-2013	Support the IndentTab setting provided by the
 "				optional IndentTab plugin (vimscript #4243).
 "				I.e. align with spaces when there's text before
@@ -153,7 +155,7 @@ function! s:RetabFromCursor()
 
     let l:renderedLine = substitute(l:originalLine, printf('\%%>%dv.*\%%<%dv.', l:textBeforeCursorScreenColumn, (l:lastWhitespaceAfterCursorScreenColumn + 1)), l:renderedWhitespace, '')
     call setline('.', l:renderedLine)
-    execute 'normal!' l:originalCursorVirtcol . '|'
+    call ingo#cursor#Set(0, l:originalCursorVirtcol)
 endfunction
 function! s:InsertSpaces( num )
     let l:line = getline('.')
@@ -245,8 +247,7 @@ function! AlignFromCursor#DoRange( firstLine, lastLine, screenCol, What, ... )
     endif
 
     for l:line in range(a:firstLine, a:lastLine)
-	execute l:line
-	execute 'normal!' a:screenCol . '|'
+	call ingo#cursor#Set(l:line, a:screenCol)
 	call call(a:What, a:000)
     endfor
 endfunction
