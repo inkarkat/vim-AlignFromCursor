@@ -32,6 +32,8 @@ RELATED WORKS								     *
   current cursor position like this plugin.
 - The Tabular plugin (https://github.com/godlygeek/tabular) is similar to the
   Align plugin.
+- right_align (vimscript #3728) has a :RightAlign command that aligns to
+  'textwidth' in full increments of 'shiftwidth'.
 
 ==============================================================================
 USAGE						       *AlignFromCursor-usage*
