@@ -125,6 +125,10 @@ IDEAS						       *AlignFromCursor-ideas*
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
 
+2.02	RELEASEME
+- Improve internal efficiency.
+- Extract AlignFromCursor#GetRetabbedFromCol() and expose for reuse.
+
 2.01	29-Jan-2014
 - Support the IndentTab setting provided by the optional IndentTab plugin
   (vimscript #4243). I.e. align with spaces when there's text before the
