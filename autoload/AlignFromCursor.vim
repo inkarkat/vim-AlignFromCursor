@@ -22,6 +22,8 @@
 "				need to move around the buffer.
 "				Extract AlignFromCursor#GetRetabbedFromCol() and
 "				expose for reuse.
+"				Determine and return success state from all
+"				functions.
 "   2.01.018	11-Dec-2013	Use ingo#cursor#Set().
 "   2.01.017	23-Sep-2013	Support the IndentTab setting provided by the
 "				optional IndentTab plugin (vimscript #4243).
@@ -118,7 +120,7 @@ function! AlignFromCursor#GetRetabbedFromCol( line, col )
     let [l:textBeforeCursorScreenColumn, l:lastWhitespaceAfterCursorScreenColumn] = s:GetWhitespaceAroundCursorScreenColumns(a:line, a:col)
     if l:lastWhitespaceAfterCursorScreenColumn == 0
 	" There's no whitespace around the cursor, therefore, nothing to do.
-	return
+	return a:line
     endif
 
     let l:width = l:lastWhitespaceAfterCursorScreenColumn - l:textBeforeCursorScreenColumn
@@ -172,8 +174,10 @@ function! AlignFromCursor#Right( width )
     if ! s:IsNonWhitespaceAfterCursor()
 	" Nothing to do; there's only whitespace after the cursor.
 	" The :right command also leaves whitespace-only lines alone.
-	return
+	return 0
     endif
+
+    let l:originalLine = getline('.')
 
     " Deleting all whitespace between the left text (which is kept) and the
     " right text (which is right-aligned) serves two purposes:
@@ -197,7 +201,7 @@ function! AlignFromCursor#Right( width )
     endwhile
 
     if ! l:didInsert
-	return
+	return 0
     endif
 
     if s:IsLineWidthLargerThan(a:width)
@@ -212,9 +216,13 @@ function! AlignFromCursor#Right( width )
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
     " settings.
     call s:RetabFromCursor()
+
+    return (getline('.') !=# l:originalLine)
 endfunction
 
 function! AlignFromCursor#Left( width )
+    let l:originalLine = getline('.')
+
     " Deleting all whitespace between the left text (which is kept) and the
     " right text (which is left-aligned) serves two purposes:
     " 1. It reduces the width of lines that are longer than the desired width,
@@ -235,7 +243,7 @@ function! AlignFromCursor#Left( width )
     if l:difference <= 0
 	" The cursor position is already past the desired width. There's nothing
 	" more we can do.
-	return
+	return 0
     endif
 
     call s:InsertSpaces(l:difference)
@@ -243,6 +251,8 @@ function! AlignFromCursor#Left( width )
     " Finally, change whitespace to spaces / tab / softtabstop based on buffer
     " settings.
     call s:RetabFromCursor()
+
+    return (getline('.') !=# l:originalLine)
 endfunction
 
 function! AlignFromCursor#DoRange( firstLine, lastLine, screenCol, What, ... )
@@ -251,10 +261,15 @@ function! AlignFromCursor#DoRange( firstLine, lastLine, screenCol, What, ... )
 	return call(a:What, a:000)
     endif
 
+    let l:isSuccess = 0
     for l:line in range(a:firstLine, a:lastLine)
 	call ingo#cursor#Set(l:line, a:screenCol)
-	call call(a:What, a:000)
+	if call(a:What, a:000)
+	    let l:isSuccess = 1
+	endif
     endfor
+
+    return l:isSuccess
 endfunction
 
 
@@ -284,20 +299,20 @@ function! s:LineNumFromOffset( lnum, count, direction )
     return l:lineNum
 endfunction
 function! AlignFromCursor#RightToLnum( lnum )
-    call AlignFromCursor#Right(ingo#compat#strdisplaywidth(getline(a:lnum)))
+    return AlignFromCursor#Right(ingo#compat#strdisplaywidth(getline(a:lnum)))
 endfunction
 function! AlignFromCursor#RightToRelativeLine( lnum, count, direction )
     let s:repeatValue = s:LineNumFromOffset(a:lnum, a:count, a:direction)
     if s:repeatValue == -1 | return | endif
-    call AlignFromCursor#RightToLnum(s:repeatValue)
+    return AlignFromCursor#RightToLnum(s:repeatValue)
 endfunction
 function! AlignFromCursor#LeftToLnum( lnum )
-    call AlignFromCursor#Left(indent(a:lnum) + 1)
+    return AlignFromCursor#Left(indent(a:lnum) + 1)
 endfunction
 function! AlignFromCursor#LeftToRelativeLine( lnum, count, direction )
     let s:repeatValue = s:LineNumFromOffset(a:lnum, a:count, a:direction)
     if s:repeatValue == -1 | return | endif
-    call AlignFromCursor#LeftToLnum(s:repeatValue)
+    return AlignFromCursor#LeftToLnum(s:repeatValue)
 endfunction
 
 
@@ -308,20 +323,24 @@ function! s:Repeat( repeatMapping, repeatCount )
     silent! call visualrepeat#set(a:repeatMapping, -1)
 endfunction
 function! AlignFromCursor#Mapping( Func, count, repeatMapping )
-    call call(a:Func, [AlignFromCursor#GetTextWidth(a:count, 1)])
+    let l:isSuccess = call(a:Func, [AlignFromCursor#GetTextWidth(a:count, 1)])
 
     " The count given to the normal mode mapping is for overriding 'textwidth',
     " but when repeating, the count specifies the number of lines to apply it
     " to. Therefore, don't store it here.
     call s:Repeat(a:repeatMapping, 1)
+
+    return l:isSuccess
 endfunction
 function! AlignFromCursor#MappingRelative( Func, lnum, count, direction, repeatMapping )
-    call call(a:Func, [a:lnum, a:count, a:direction])
+    let l:isSuccess = call(a:Func, [a:lnum, a:count, a:direction])
 
     " The count given to the normal mode mapping is for selecting the reference
     " line, but when repeating, the count specifies the number of lines to apply
     " it to. Therefore, don't store it here.
     call s:Repeat(a:repeatMapping, 1)
+
+    return l:isSuccess
 endfunction
 
 function! s:GetVisualScreenColumn()
@@ -333,7 +352,7 @@ function! s:GetVisualScreenColumn()
     \)
 endfunction
 function! AlignFromCursor#VisualMapping( What, ... )
-    call call(function('AlignFromCursor#DoRange'), [
+    let l:isSuccess = call(function('AlignFromCursor#DoRange'), [
     \   line("'<"), line("'>"), s:GetVisualScreenColumn(),
     \   a:What
     \] + a:000[0:-2])
@@ -341,20 +360,24 @@ function! AlignFromCursor#VisualMapping( What, ... )
     " When repeating the visual mapping in normal mode, default to the same
     " number of lines.
     call s:Repeat(a:000[-1], (line("'>") - line("'<") + 1))
+
+    return l:isSuccess
 endfunction
 
 
 let s:repeatValue = 0
 function! AlignFromCursor#RepeatMapping( What, count, repeatMapping )
-    call AlignFromCursor#DoRange(
+    let l:isSuccess = AlignFromCursor#DoRange(
     \   line('.'), line('.') + a:count - 1, virtcol('.'),
     \   a:What, s:repeatValue
     \)
 
     call s:Repeat(a:repeatMapping, a:count)
+
+    return l:isSuccess
 endfunction
 function! AlignFromCursor#VisualRepeatMapping( What, repeatMapping )
-    call AlignFromCursor#DoRange(
+    let l:isSuccess = AlignFromCursor#DoRange(
     \   line("'<"), line("'>"), s:GetVisualScreenColumn(),
     \   a:What, s:repeatValue
     \)
@@ -362,6 +385,8 @@ function! AlignFromCursor#VisualRepeatMapping( What, repeatMapping )
     " When repeating the visual mapping in normal mode, default to the same
     " number of lines.
     call s:Repeat(a:repeatMapping, (line("'>") - line("'<") + 1))
+
+    return l:isSuccess
 endfunction
 
 let &cpo = s:save_cpo
