@@ -24,3 +24,17 @@ dfgsdfg dfg dfg sfgs	   dfg sgsgdg g
 		     s日本語　f			       sdfsdfsdfsdf	k
 		    s日本語　g	 sdfsdf		    sdfｏ，　fsdf
 		     ssｏdfsdfsdf			       sdfsdfsdfsdf	k
+
+    case "$OPR_VERSION" in
+	opr-9.[01])	       ## ${M2_HOME:=$devel/hpsw-bf-javatools/maven/2.2.1};;
+	opr-9.2)	       # ${M2_HOME:=$devel/hpsw-bf-javatools/maven/3.0.3};;
+	opr-config-9.2)	       : ${M2_HOME:=$devel/hpsw-bf-javatools/maven/3.0.3};;
+	current)	       : ${M2_HOME:=$devel/hpsw-bf-javatools/maven/3.0.4};;
+	*)		       echo "ASSERT: Unknown OPR_VERSION \"${OPR_VERSION}\"!"; return 1;;
+    esac
+    : ${M2:=$M2_HOME/bin}
+    : ${MVN:=$M2/mvn}
+    : ${MAVEN_OPTS:=-Xms512m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=512m -XX:ReservedCodeCacheSize=128m}
+    : ${GRAILS_HOME:=$devel/hpsw-bf-javatools/grails/1.3.4}
+    [ "$repository" = 'hpsw-opr-config' ] && GRAILS_HOME=$devel/hpsw-bf-javatools/grails/1.3.7
+    : ${GROOVY_HOME:=$devel/hpsw-bf-javatools/groovy/2.1.1} # For groovysh.
