@@ -130,6 +130,9 @@ HISTORY						     *AlignFromCursor-history*
 2.02	RELEASEME
 - Improve internal efficiency.
 - Extract AlignFromCursor#GetRetabbedFromCol() and expose for reuse.
+- BUG: :LeftAlignFromCursor adds one character too few if the first
+  left-aligned character is double width (e.g. ^X unprintable or Kanji
+  character).
 
 2.01	29-Jan-2014
 - Support the IndentTab setting provided by the optional IndentTab plugin
@@ -177,7 +180,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2006-2014 Ingo Karkat
+Copyright: (C) 2006-2016 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
