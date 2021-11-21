@@ -127,7 +127,7 @@ IDEAS						       *AlignFromCursor-ideas*
 ==============================================================================
 HISTORY						     *AlignFromCursor-history*
 
-2.02	RELEASEME
+2.02	29-Dec-2016
 - Improve internal efficiency.
 - Extract AlignFromCursor#GetRetabbedFromCol() and expose for reuse.
 - BUG: :LeftAlignFromCursor adds one character too few if the first
