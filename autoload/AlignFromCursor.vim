@@ -5,16 +5,21 @@
 "   - ingo/cursor.vim autoload script
 "   - ingo/folds.vim autoload script
 "   - ingo/mbyte/virtcol.vim autoload script
+"   - ingo/text.vim autoload script
 "   - IndentTab/Info.vim autoload script (optional)
 "   - vimscript #2136 repeat.vim autoload script (optional)
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "
-" Copyright: (C) 2006-2014 Ingo Karkat
+" Copyright: (C) 2006-2016 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.02.020	27-Dec-2016	BUG: :LeftAlignFromCursor adds one character too
+"				few if the first left-aligned character is
+"				double width (e.g. ^X unprintable or Kanji
+"				character).
 "   2.02.019	21-Mar-2014	Replace implementation of
 "				s:GetWhitespaceAroundCursorScreenColumns() with
 "				a more efficient one (at least when a native
@@ -238,7 +243,11 @@ function! AlignFromCursor#Left( width )
     " Calculate the number of screen columns that need to be filled with <Space>
     " characters. The indent is corrected at the end, so that the proper <Tab> /
     " <Space> characters are used.
-    let l:difference = a:width - virtcol('.')
+    " Note: For double-width characters, virtcol() returns the column of the
+    " second cell. But for left-aligning, we need the first one, so account for
+    " the character width.
+    let l:currentCharacterWidth = ingo#compat#strdisplaywidth(ingo#text#GetChar(getpos('.')[1:2]))
+    let l:difference = a:width - virtcol('.') + l:currentCharacterWidth - 1
 
     if l:difference <= 0
 	" The cursor position is already past the desired width. There's nothing
