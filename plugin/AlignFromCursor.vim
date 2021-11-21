@@ -4,12 +4,14 @@
 "   - Requires Vim 7.0 or higher
 "   - AlignFromCursor.vim autoload script
 "
-" Copyright: (C) 2006-2013 Ingo Karkat
+" Copyright: (C) 2006-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.02.014	21-Mar-2014	Mappings beep when their application didn't
+"				cause any change to the buffer.
 "   2.00.013	08-Apr-2013	Refactor AlignFromCursor#MappingRelative()
 "				invocation.
 "				ENH: Add visual mode mappings for the relative
@@ -100,10 +102,10 @@ command! -bar -range -nargs=? LeftAlignFromCursor  call setline(<line1>, getline
 " Align from cursor {{{1
 nnoremap <silent> <Plug>RightAlignFromCursor :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#Mapping('AlignFromCursor#Right', v:count, "\<lt>Plug>RightAlignRepeat")<CR>
+\if ! AlignFromCursor#Mapping('AlignFromCursor#Right', v:count, "\<lt>Plug>RightAlignRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 nnoremap <silent> <Plug>LeftAlignFromCursor :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#Mapping('AlignFromCursor#Left', v:count, "\<lt>Plug>LeftAlignRepeat")<CR>
+\if ! AlignFromCursor#Mapping('AlignFromCursor#Left',  v:count, "\<lt>Plug>LeftAlignRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 
 if ! hasmapto('<Plug>RightAlignFromCursor', 'n')
     nmap <silent> <Leader>ri <Plug>RightAlignFromCursor
@@ -114,10 +116,10 @@ endif
 
 vnoremap <silent> <Plug>RightAlignFromCursor :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualMapping('AlignFromCursor#Right', AlignFromCursor#GetTextWidth(v:count, 1), "\<lt>Plug>RightAlignRepeat")<CR>
+\if ! AlignFromCursor#VisualMapping('AlignFromCursor#Right', AlignFromCursor#GetTextWidth(v:count, 1), "\<lt>Plug>RightAlignRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>LeftAlignFromCursor :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualMapping('AlignFromCursor#Left',  AlignFromCursor#GetTextWidth(v:count, 1), "\<lt>Plug>LeftAlignRepeat")<CR>
+\if ! AlignFromCursor#VisualMapping('AlignFromCursor#Left',  AlignFromCursor#GetTextWidth(v:count, 1), "\<lt>Plug>LeftAlignRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 
 if ! hasmapto('<Plug>RightAlignFromCursor', 'x')
     xmap <silent> <Leader>ri <Plug>RightAlignFromCursor
@@ -129,32 +131,32 @@ endif
 " Repeats {{{2
 nnoremap <silent> <Plug>LeftAlignRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#RepeatMapping('AlignFromCursor#Left',  v:count1, "\<lt>Plug>LeftAlignRepeat")<CR>
+\if ! AlignFromCursor#RepeatMapping('AlignFromCursor#Left',  v:count1, "\<lt>Plug>LeftAlignRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 nnoremap <silent> <Plug>RightAlignRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#RepeatMapping('AlignFromCursor#Right',  v:count1, "\<lt>Plug>RightAlignRepeat")<CR>
+\if ! AlignFromCursor#RepeatMapping('AlignFromCursor#Right', v:count1, "\<lt>Plug>RightAlignRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>LeftAlignRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualRepeatMapping('AlignFromCursor#Left',  "\<lt>Plug>LeftAlignRepeat")<CR>
+\if ! AlignFromCursor#VisualRepeatMapping('AlignFromCursor#Left',  "\<lt>Plug>LeftAlignRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>RightAlignRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualRepeatMapping('AlignFromCursor#Right', "\<lt>Plug>RightAlignRepeat")<CR>
+\if ! AlignFromCursor#VisualRepeatMapping('AlignFromCursor#Right', "\<lt>Plug>RightAlignRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 "}}}2 }}}1
 
 
 " Align to adjacent {{{1
 nnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', line('.'), v:count1, -1, "\<lt>Plug>RightAlignToRepeat")<CR>
+\if ! AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', line('.'), v:count1, -1, "\<lt>Plug>RightAlignToRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 nnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', line('.'), v:count1,  1, "\<lt>Plug>RightAlignToRepeat")<CR>
+\if ! AlignFromCursor#MappingRelative('AlignFromCursor#RightToRelativeLine', line('.'), v:count1,  1, "\<lt>Plug>RightAlignToRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 nnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  line('.'), v:count1, -1, "\<lt>Plug>LeftAlignToRepeat")<CR>
+\if ! AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  line('.'), v:count1, -1, "\<lt>Plug>LeftAlignToRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 nnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  line('.'), v:count1,  1, "\<lt>Plug>LeftAlignToRepeat")<CR>
+\if ! AlignFromCursor#MappingRelative('AlignFromCursor#LeftToRelativeLine',  line('.'), v:count1,  1, "\<lt>Plug>LeftAlignToRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 
 if ! hasmapto('<Plug>RightAlignToPreviousLine', 'n')
     nmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
@@ -172,16 +174,16 @@ endif
 
 vnoremap <silent> <Plug>RightAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualMapping('AlignFromCursor#RightToRelativeLine', "'<", v:count1, -1, "\<lt>Plug>RightAlignToRepeat")<CR>
+\if ! AlignFromCursor#VisualMapping('AlignFromCursor#RightToRelativeLine', "'<", v:count1, -1, "\<lt>Plug>RightAlignToRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>RightAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualMapping('AlignFromCursor#RightToRelativeLine', "'>", v:count1,  1, "\<lt>Plug>RightAlignToRepeat")<CR>
+\if ! AlignFromCursor#VisualMapping('AlignFromCursor#RightToRelativeLine', "'>", v:count1,  1, "\<lt>Plug>RightAlignToRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>LeftAlignToPreviousLine :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualMapping('AlignFromCursor#LeftToRelativeLine', "'<", v:count1, -1, "\<lt>Plug>LeftAlignToRepeat")<CR>
+\if ! AlignFromCursor#VisualMapping('AlignFromCursor#LeftToRelativeLine', "'<", v:count1,  -1, "\<lt>Plug>LeftAlignToRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>LeftAlignToNextLine     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualMapping('AlignFromCursor#LeftToRelativeLine', "'>", v:count1,  1, "\<lt>Plug>LeftAlignToRepeat")<CR>
+\if ! AlignFromCursor#VisualMapping('AlignFromCursor#LeftToRelativeLine', "'>", v:count1,   1, "\<lt>Plug>LeftAlignToRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 
 if ! hasmapto('<Plug>RightAlignToPreviousLine', 'x')
     xmap <silent> <Leader>rp <Plug>RightAlignToPreviousLine
@@ -199,16 +201,16 @@ endif
 " Repeats {{{2
 nnoremap <silent> <Plug>LeftAlignToRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#RepeatMapping('AlignFromCursor#LeftToLnum',  v:count1, "\<lt>Plug>LeftAlignToRepeat")<CR>
+\if ! AlignFromCursor#RepeatMapping('AlignFromCursor#LeftToLnum',  v:count1, "\<lt>Plug>LeftAlignToRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 nnoremap <silent> <Plug>RightAlignToRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#RepeatMapping('AlignFromCursor#RightToLnum', v:count1, "\<lt>Plug>RightAlignToRepeat")<CR>
+\if ! AlignFromCursor#RepeatMapping('AlignFromCursor#RightToLnum', v:count1, "\<lt>Plug>RightAlignToRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>LeftAlignToRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualRepeatMapping('AlignFromCursor#LeftToLnum',  "\<lt>Plug>LeftAlignToRepeat")<CR>
+\if ! AlignFromCursor#VisualRepeatMapping('AlignFromCursor#LeftToLnum',  "\<lt>Plug>LeftAlignToRepeat" )<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 vnoremap <silent> <Plug>RightAlignToRepeat     :<C-u>
 \call setline('.', getline('.'))<Bar>
-\call AlignFromCursor#VisualRepeatMapping('AlignFromCursor#RightToLnum', "\<lt>Plug>RightAlignToRepeat")<CR>
+\if ! AlignFromCursor#VisualRepeatMapping('AlignFromCursor#RightToLnum', "\<lt>Plug>RightAlignToRepeat")<Bar>execute "normal! \<lt>C-\>\<lt>C-n>\<lt>Esc>"<Bar>endif<CR>
 "}}}2 }}}1
 
 let &cpo = s:save_cpo
