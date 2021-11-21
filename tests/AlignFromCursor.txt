@@ -10,20 +10,21 @@ dfgsdfg dfg dfg sfgs	   dfg sgsgdg g
 								          Y there a mark
 		dfg sgsgdg g
 	       dfg sxgsgdg g
-	      dfg sgxxsgdg g
-	     dfg sgsxxxgdg g
+	      dfg sgxxsgdg
+	     dfg sgsxxxgdg日
 	    dfg sgsgxxxdg X
 	   dfg sgxxxsgdg g
 	 dfg sgsgxxxxxxxxdg g
 
 		    sdfgsdfg	 sdfsdf		    sdfadfasdfsdf
-		    dfgdfg  sfdf
+		    dfgdfg  sfdf
 		     ssdf			       sdfsdfsdfsdf	k
 		    sg	 sdfsdf		    sdffsdf
 		    dfgdfg  s日本語　f
 		     s日本語　f			       sdfsdfsdfsdf	k
 		    s日本語　g	 sdfsdf		    sdfｏ，　fsdf
 		     ssｏdfsdfsdf			       sdfsdfsdfsdf	k
+                    日本語　g	 sdfsdf		    sdfｏ，　fsdf
 
     case "$OPR_VERSION" in
 	opr-9.[01])	       ## ${M2_HOME:=$devel/hpsw-bf-javatools/maven/2.2.1};;
@@ -38,3 +39,5 @@ dfgsdfg dfg dfg sfgs	   dfg sgsgdg g
     : ${GRAILS_HOME:=$devel/hpsw-bf-javatools/grails/1.3.4}
     [ "$repository" = 'hpsw-opr-config' ] && GRAILS_HOME=$devel/hpsw-bf-javatools/grails/1.3.7
     : ${GROOVY_HOME:=$devel/hpsw-bf-javatools/groovy/2.1.1} # For groovysh.
+ASCII only:		       7he quick brovvri F0>< jurnps over the Icizy |)06.
+Fullwidth:		      Ｔｈｅ　ｑｕｉｃｋ　ｂｒｏｗｎ　ＦＯＸ　ｊｕｍｐｓ　ｏｖｅｒ　ｔｈｅ　ｌａｚｙ　ＤＯＧ．
